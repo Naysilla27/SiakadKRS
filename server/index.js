@@ -2,82 +2,18 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import { pool, query, testConnection } from './db.js';
+import { loadStore, saveStore } from './store.js';
 
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 5005;
 
 app.use(cors());
 app.use(express.json());
 
-// In-memory fallback dataset in case PostgreSQL connection needs initialization
-let fallbackData = {
-  prodi: [
-    { kode_prodi: 'SIF', nama_prodi: 'Sistem Informasi', jenjang: 'S1' },
-    { kode_prodi: 'INF', nama_prodi: 'Informatika', jenjang: 'S1' },
-    { kode_prodi: 'IND', nama_prodi: 'Teknik Industri', jenjang: 'S1' },
-  ],
-  dosen: [
-    { id_dosen: 1, nidn: '0415088001', nama: 'Dr. Ir. Sigit Anggoro, S.T., M.T., IPM', email: 'sigit.anggoro@unjani.ac.id', kode_prodi: 'SIF' },
-    { id_dosen: 2, nidn: '0422118502', nama: 'Irma Santikarama, S.Kom., M.T', email: 'irma.santikarama@unjani.ac.id', kode_prodi: 'SIF' },
-    { id_dosen: 3, nidn: '0410027501', nama: 'Dra. Aisyah Rahmawati, M.T.', email: 'aisyah@unjani.ac.id', kode_prodi: 'SIF' },
-  ],
-  periode: [
-    { id_periode: '20261', nama_periode: 'Semester Ganjil 2026/2027', tgl_mulai: '2026-09-01', tgl_selesai: '2027-01-31' },
-  ],
-  mata_kuliah: [
-    { kode_mk: 'SI611029', nama_mk: 'Implementasi dan Pengujian Sistem Informasi', sks: 3, semester_ke: 5 },
-    { kode_mk: 'SI611027', nama_mk: 'Manajemen Proyek TI', sks: 3, semester_ke: 5 },
-    { kode_mk: 'SI611028', nama_mk: 'Arsitektur Enterprise', sks: 2, semester_ke: 5 },
-    { kode_mk: 'SI611020', nama_mk: 'Basis Data Lanjut', sks: 3, semester_ke: 3 },
-    { kode_mk: 'SI611021', nama_mk: 'Pemrograman Web Modern', sks: 3, semester_ke: 3 },
-    { kode_mk: 'SI611015', nama_mk: 'Algoritma & Struktur Data', sks: 4, semester_ke: 2 },
-    { kode_mk: 'SI611030', nama_mk: 'Etika Profesi & Tata Kelola IT', sks: 2, semester_ke: 5 },
-    { kode_mk: 'SI611031', nama_mk: 'Keamanan Sistem Informasi', sks: 3, semester_ke: 5 },
-    { kode_mk: 'SI611032', nama_mk: 'Data Warehouse & Business Intelligence', sks: 3, semester_ke: 5 }
-  ],
-  kelas: [
-    { id_kelas: 1, kode_mk: 'SI611029', id_periode: '20261', id_dosen: 1, nama_kelas: 'SI-A', kuota: 40, hari: 'Senin', jam: '08:00 - 10:30', ruang: 'R.301' },
-    { id_kelas: 2, kode_mk: 'SI611029', id_periode: '20261', id_dosen: 2, nama_kelas: 'SI-B', kuota: 40, hari: 'Selasa', jam: '13:00 - 15:30', ruang: 'R.302' },
-    { id_kelas: 3, kode_mk: 'SI611027', id_periode: '20261', id_dosen: 2, nama_kelas: 'SI-A', kuota: 40, hari: 'Rabu', jam: '08:00 - 10:30', ruang: 'R.301' },
-    { id_kelas: 4, kode_mk: 'SI611028', id_periode: '20261', id_dosen: 1, nama_kelas: 'SI-A', kuota: 35, hari: 'Kamis', jam: '10:30 - 12:10', ruang: 'R.204' },
-    { id_kelas: 5, kode_mk: 'SI611020', id_periode: '20261', id_dosen: 3, nama_kelas: 'SI-A', kuota: 40, hari: 'Jumat', jam: '08:00 - 10:30', ruang: 'Lab. Komputer 2' },
-    { id_kelas: 6, kode_mk: 'SI611021', id_periode: '20261', id_dosen: 1, nama_kelas: 'SI-A', kuota: 40, hari: 'Selasa', jam: '08:00 - 10:30', ruang: 'Lab. Web' },
-    { id_kelas: 7, kode_mk: 'SI611030', id_periode: '20261', id_dosen: 3, nama_kelas: 'SI-A', kuota: 45, hari: 'Rabu', jam: '13:00 - 14:40', ruang: 'R.105' },
-    { id_kelas: 8, kode_mk: 'SI611031', id_periode: '20261', id_dosen: 1, nama_kelas: 'SI-A', kuota: 40, hari: 'Kamis', jam: '13:00 - 15:30', ruang: 'R.301' },
-    { id_kelas: 9, kode_mk: 'SI611032', id_periode: '20261', id_dosen: 2, nama_kelas: 'SI-A', kuota: 35, hari: 'Jumat', jam: '13:30 - 16:00', ruang: 'Lab. Data' },
-  ],
-  mahasiswa: [
-    { nim: '2023900001', nama: 'Andi Pratama', email: 'andi.pratama@student.unjani.ac.id', tahun_masuk: 2023, status: 'aktif', kode_prodi: 'SIF', id_dosen_pa: 1, no_hp: '081234567890', ips_lalu: 3.85, max_sks: 24 },
-    { nim: '2023900002', nama: 'Bunga Lestari', email: 'bunga.lestari@student.unjani.ac.id', tahun_masuk: 2023, status: 'aktif', kode_prodi: 'SIF', id_dosen_pa: 2, no_hp: '081298765432', ips_lalu: 3.40, max_sks: 24 },
-    { nim: '2023900003', nama: 'Citra Dewi', email: 'citra.dewi@student.unjani.ac.id', tahun_masuk: 2023, status: 'aktif', kode_prodi: 'SIF', id_dosen_pa: 1, no_hp: '081377889900', ips_lalu: 2.75, max_sks: 21 },
-    { nim: '2023900004', nama: 'Dimas Saputra', email: 'dimas.saputra@student.unjani.ac.id', tahun_masuk: 2023, status: 'aktif', kode_prodi: 'SIF', id_dosen_pa: 2, no_hp: '081455667788', ips_lalu: 3.10, max_sks: 24 }
-  ],
-  krs: [
-    { id_krs: 1, nim: '2023900001', id_periode: '20261', tgl_isi: '2026-09-02', status: 'disetujui', catatan_dosen: 'Rencana studi sangat baik. Pertahankan prestasimu!' },
-    { id_krs: 2, nim: '2023900002', id_periode: '20261', tgl_isi: '2026-09-03', status: 'diajukan', catatan_dosen: 'Menunggu review Dosen PA.' },
-    { id_krs: 3, nim: '2023900004', id_periode: '20261', tgl_isi: '2026-09-04', status: 'draft', catatan_dosen: '' }
-  ],
-  krs_detail: [
-    { id_krs: 1, id_kelas: 1 },
-    { id_krs: 1, id_kelas: 3 },
-    { id_krs: 1, id_kelas: 4 },
-    { id_krs: 1, id_kelas: 6 },
-    { id_krs: 2, id_kelas: 2 },
-    { id_krs: 2, id_kelas: 3 },
-    { id_krs: 2, id_kelas: 4 },
-    { id_krs: 3, id_kelas: 1 },
-    { id_krs: 3, id_kelas: 3 },
-  ],
-  aturan_akademik: [
-    { kode: 'maks_sks', nilai: 24, keterangan: 'Batas maksimum SKS per semester' }
-  ],
-  defects: [
-    { id: 'DEF-001', module: 'Validasi KRS', title: 'Sistem menolak KRS dengan 25 SKS (Trigger Test)', error_type: 'Human Error', fault: 'Kondisi program batas SKS', defect: 'Total SKS 25 melebihi batas 24', status: 'Verified Fixed', severity: 'Critical' },
-    { id: 'DEF-002', module: 'Autentikasi', title: 'Validasi password sesuai spesifikasi', error_type: 'Fault', fault: 'Password length check', defect: 'Password < 8 karakter', status: 'Closed', severity: 'Medium' }
-  ]
-};
+// Load persistent data store from disk (never lost across refreshes or restarts)
+let fallbackData = loadStore();
 
 // Check DB status on startup
 let isPostgresLive = false;
@@ -133,6 +69,7 @@ app.get('/api/health', async (req, res) => {
 // 2. MAHASISWA CRUD
 // -------------------------------------------------------------
 app.get('/api/mahasiswa', async (req, res) => {
+  fallbackData = loadStore();
   try {
     if (isPostgresLive) {
       const q = `
@@ -151,13 +88,13 @@ app.get('/api/mahasiswa', async (req, res) => {
         ORDER BY m.nim ASC
       `;
       const result = await query(q);
-      return res.json(result.rows);
+      if (result.rows && result.rows.length > 0) return res.json(result.rows);
     }
   } catch (err) {
     console.warn('Fallback to local state:', err.message);
   }
 
-  // Fallback calculation
+  // Fallback calculation using persisted fallbackData
   const list = fallbackData.mahasiswa.map(m => {
     const krs = fallbackData.krs.find(k => k.nim === m.nim);
     const prodi = fallbackData.prodi.find(p => p.kode_prodi === m.kode_prodi);
@@ -197,13 +134,13 @@ app.get('/api/mahasiswa/:nim', async (req, res) => {
         LEFT JOIN dosen d ON d.id_dosen = m.id_dosen_pa
         WHERE m.nim = $1
       `, [nim]);
-      if (mhsRes.rows.length === 0) return res.status(404).json({ error: 'Mahasiswa tidak ditemukan' });
-      return res.json(mhsRes.rows[0]);
+      if (mhsRes.rows.length > 0) return res.json(mhsRes.rows[0]);
     }
   } catch (err) {
     console.warn('Fallback single mahasiswa:', err.message);
   }
 
+  fallbackData = loadStore();
   const m = fallbackData.mahasiswa.find(item => item.nim === nim);
   if (!m) return res.status(404).json({ error: 'Mahasiswa tidak ditemukan' });
   const prodi = fallbackData.prodi.find(p => p.kode_prodi === m.kode_prodi);
@@ -221,26 +158,41 @@ app.post('/api/mahasiswa', async (req, res) => {
   const { nim, nama, email, tahun_masuk, status, kode_prodi, id_dosen_pa, no_hp } = req.body;
   if (!nim || !nama) return res.status(400).json({ error: 'NIM dan Nama wajib diisi' });
 
-  try {
-    if (isPostgresLive) {
+  fallbackData = loadStore();
+  const exists = fallbackData.mahasiswa.find(m => m.nim === nim);
+  if (exists) return res.status(400).json({ error: 'NIM sudah terdaftar' });
+
+  const newMhs = {
+    nim,
+    nama,
+    email: email || '',
+    tahun_masuk: Number(tahun_masuk) || 2024,
+    status: status || 'aktif',
+    kode_prodi: kode_prodi || 'SIF',
+    id_dosen_pa: Number(id_dosen_pa) || 1,
+    no_hp: no_hp || '',
+    ips_lalu: 3.5,
+    max_sks: 24
+  };
+
+  // 1. Save to persistent JSON store
+  fallbackData.mahasiswa.push(newMhs);
+  saveStore(fallbackData);
+
+  // 2. Also try insert to Postgres if connected
+  if (isPostgresLive) {
+    try {
       const q = `
         INSERT INTO mahasiswa (nim, nama, email, tahun_masuk, status, kode_prodi, id_dosen_pa, no_hp)
         VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-        RETURNING *
       `;
-      const values = [nim, nama, email || null, tahun_masuk || 2024, status || 'aktif', kode_prodi || 'SIF', id_dosen_pa || null, no_hp || null];
-      const result = await query(q, values);
-      return res.status(201).json(result.rows[0]);
+      const values = [nim, nama, email || null, Number(tahun_masuk) || 2024, status || 'aktif', kode_prodi || 'SIF', Number(id_dosen_pa) || 1, no_hp || null];
+      await query(q, values);
+    } catch (err) {
+      console.warn('Postgres insert background note:', err.message);
     }
-  } catch (err) {
-    if (err.code === '23505') return res.status(400).json({ error: 'NIM atau Email sudah terdaftar (Unique Constraint)' });
-    return res.status(500).json({ error: err.message });
   }
 
-  const exists = fallbackData.mahasiswa.find(m => m.nim === nim);
-  if (exists) return res.status(400).json({ error: 'NIM sudah terdaftar' });
-  const newMhs = { nim, nama, email, tahun_masuk: Number(tahun_masuk) || 2024, status: status || 'aktif', kode_prodi: kode_prodi || 'SIF', id_dosen_pa: Number(id_dosen_pa) || 1, no_hp: no_hp || '', ips_lalu: 3.5, max_sks: 24 };
-  fallbackData.mahasiswa.push(newMhs);
   res.status(201).json(newMhs);
 });
 
@@ -249,25 +201,10 @@ app.put('/api/mahasiswa/:nim', async (req, res) => {
   const { nim } = req.params;
   const { nama, email, tahun_masuk, status, kode_prodi, id_dosen_pa, no_hp } = req.body;
 
-  try {
-    if (isPostgresLive) {
-      const q = `
-        UPDATE mahasiswa
-        SET nama = $1, email = $2, tahun_masuk = $3, status = $4, kode_prodi = $5, id_dosen_pa = $6, no_hp = $7
-        WHERE nim = $8
-        RETURNING *
-      `;
-      const values = [nama, email, tahun_masuk, status, kode_prodi, id_dosen_pa, no_hp, nim];
-      const result = await query(q, values);
-      if (result.rows.length === 0) return res.status(404).json({ error: 'Mahasiswa tidak ditemukan' });
-      return res.json(result.rows[0]);
-    }
-  } catch (err) {
-    return res.status(500).json({ error: err.message });
-  }
-
+  fallbackData = loadStore();
   const idx = fallbackData.mahasiswa.findIndex(m => m.nim === nim);
   if (idx === -1) return res.status(404).json({ error: 'Mahasiswa tidak ditemukan' });
+
   fallbackData.mahasiswa[idx] = {
     ...fallbackData.mahasiswa[idx],
     nama: nama || fallbackData.mahasiswa[idx].nama,
@@ -278,22 +215,39 @@ app.put('/api/mahasiswa/:nim', async (req, res) => {
     id_dosen_pa: id_dosen_pa ? Number(id_dosen_pa) : fallbackData.mahasiswa[idx].id_dosen_pa,
     no_hp: no_hp !== undefined ? no_hp : fallbackData.mahasiswa[idx].no_hp,
   };
+  saveStore(fallbackData);
+
+  if (isPostgresLive) {
+    try {
+      const q = `
+        UPDATE mahasiswa
+        SET nama = $1, email = $2, tahun_masuk = $3, status = $4, kode_prodi = $5, id_dosen_pa = $6, no_hp = $7
+        WHERE nim = $8
+      `;
+      await query(q, [nama, email, tahun_masuk, status, kode_prodi, id_dosen_pa, no_hp, nim]);
+    } catch (err) {
+      console.warn('Postgres update note:', err.message);
+    }
+  }
+
   res.json(fallbackData.mahasiswa[idx]);
 });
 
 // Delete Mahasiswa
 app.delete('/api/mahasiswa/:nim', async (req, res) => {
   const { nim } = req.params;
-  try {
-    if (isPostgresLive) {
+  fallbackData = loadStore();
+  fallbackData.mahasiswa = fallbackData.mahasiswa.filter(m => m.nim !== nim);
+  saveStore(fallbackData);
+
+  if (isPostgresLive) {
+    try {
       await query('DELETE FROM mahasiswa WHERE nim = $1', [nim]);
-      return res.json({ message: 'Mahasiswa berhasil dihapus' });
+    } catch (err) {
+      console.warn('Postgres delete note:', err.message);
     }
-  } catch (err) {
-    return res.status(500).json({ error: err.message });
   }
 
-  fallbackData.mahasiswa = fallbackData.mahasiswa.filter(m => m.nim !== nim);
   res.json({ message: 'Mahasiswa berhasil dihapus' });
 });
 
@@ -334,56 +288,63 @@ app.post('/api/dosen', async (req, res) => {
   const { nidn, nama, email, kode_prodi } = req.body;
   if (!nidn || !nama) return res.status(400).json({ error: 'NIDN dan Nama wajib diisi' });
 
-  try {
-    if (isPostgresLive) {
-      const result = await query(
-        `INSERT INTO dosen (nidn, nama, email, kode_prodi) VALUES ($1, $2, $3, $4) RETURNING *`,
-        [nidn, nama, email, kode_prodi || 'SIF']
-      );
-      return res.status(201).json(result.rows[0]);
-    }
-  } catch (err) {
-    return res.status(500).json({ error: err.message });
-  }
-
+  fallbackData = loadStore();
   const newDosen = { id_dosen: Date.now(), nidn, nama, email, kode_prodi: kode_prodi || 'SIF' };
   fallbackData.dosen.push(newDosen);
+  saveStore(fallbackData);
+
+  if (isPostgresLive) {
+    try {
+      await query(
+        `INSERT INTO dosen (nidn, nama, email, kode_prodi) VALUES ($1, $2, $3, $4)`,
+        [nidn, nama, email, kode_prodi || 'SIF']
+      );
+    } catch (err) {
+      console.warn('Postgres dosen insert note:', err.message);
+    }
+  }
+
   res.status(201).json(newDosen);
 });
 
 app.put('/api/dosen/:id', async (req, res) => {
   const { id } = req.params;
   const { nidn, nama, email, kode_prodi } = req.body;
-  try {
-    if (isPostgresLive) {
-      const result = await query(
-        `UPDATE dosen SET nidn = $1, nama = $2, email = $3, kode_prodi = $4 WHERE id_dosen = $5 RETURNING *`,
-        [nidn, nama, email, kode_prodi, id]
-      );
-      return res.json(result.rows[0]);
-    }
-  } catch (err) {
-    return res.status(500).json({ error: err.message });
-  }
 
+  fallbackData = loadStore();
   const idx = fallbackData.dosen.findIndex(d => d.id_dosen === Number(id));
   if (idx === -1) return res.status(404).json({ error: 'Dosen tidak ditemukan' });
   fallbackData.dosen[idx] = { ...fallbackData.dosen[idx], nidn, nama, email, kode_prodi };
+  saveStore(fallbackData);
+
+  if (isPostgresLive) {
+    try {
+      await query(
+        `UPDATE dosen SET nidn = $1, nama = $2, email = $3, kode_prodi = $4 WHERE id_dosen = $5`,
+        [nidn, nama, email, kode_prodi, id]
+      );
+    } catch (err) {
+      console.warn('Postgres dosen update note:', err.message);
+    }
+  }
+
   res.json(fallbackData.dosen[idx]);
 });
 
 app.delete('/api/dosen/:id', async (req, res) => {
   const { id } = req.params;
-  try {
-    if (isPostgresLive) {
+  fallbackData = loadStore();
+  fallbackData.dosen = fallbackData.dosen.filter(d => d.id_dosen !== Number(id));
+  saveStore(fallbackData);
+
+  if (isPostgresLive) {
+    try {
       await query(`DELETE FROM dosen WHERE id_dosen = $1`, [id]);
-      return res.json({ message: 'Dosen berhasil dihapus' });
+    } catch (err) {
+      console.warn('Postgres dosen delete note:', err.message);
     }
-  } catch (err) {
-    return res.status(500).json({ error: err.message });
   }
 
-  fallbackData.dosen = fallbackData.dosen.filter(d => d.id_dosen !== Number(id));
   res.json({ message: 'Dosen berhasil dihapus' });
 });
 
@@ -391,10 +352,11 @@ app.delete('/api/dosen/:id', async (req, res) => {
 // 4. MATA KULIAH CRUD
 // -------------------------------------------------------------
 app.get('/api/matakuliah', async (req, res) => {
+  fallbackData = loadStore();
   try {
     if (isPostgresLive) {
       const result = await query('SELECT * FROM mata_kuliah ORDER BY semester_ke ASC, kode_mk ASC');
-      return res.json(result.rows);
+      if (result.rows && result.rows.length > 0) return res.json(result.rows);
     }
   } catch (err) {
     console.warn('Fallback MK:', err.message);
@@ -406,56 +368,63 @@ app.post('/api/matakuliah', async (req, res) => {
   const { kode_mk, nama_mk, sks, semester_ke } = req.body;
   if (!kode_mk || !nama_mk) return res.status(400).json({ error: 'Kode dan Nama MK wajib diisi' });
 
-  try {
-    if (isPostgresLive) {
-      const result = await query(
-        `INSERT INTO mata_kuliah (kode_mk, nama_mk, sks, semester_ke) VALUES ($1, $2, $3, $4) RETURNING *`,
-        [kode_mk, nama_mk, sks || 3, semester_ke || 1]
-      );
-      return res.status(201).json(result.rows[0]);
-    }
-  } catch (err) {
-    return res.status(500).json({ error: err.message });
-  }
-
+  fallbackData = loadStore();
   const newMk = { kode_mk, nama_mk, sks: Number(sks), semester_ke: Number(semester_ke) };
   fallbackData.mata_kuliah.push(newMk);
+  saveStore(fallbackData);
+
+  if (isPostgresLive) {
+    try {
+      await query(
+        `INSERT INTO mata_kuliah (kode_mk, nama_mk, sks, semester_ke) VALUES ($1, $2, $3, $4)`,
+        [kode_mk, nama_mk, sks || 3, semester_ke || 1]
+      );
+    } catch (err) {
+      console.warn('Postgres MK insert note:', err.message);
+    }
+  }
+
   res.status(201).json(newMk);
 });
 
 app.put('/api/matakuliah/:kode_mk', async (req, res) => {
   const { kode_mk } = req.params;
   const { nama_mk, sks, semester_ke } = req.body;
-  try {
-    if (isPostgresLive) {
-      const result = await query(
-        `UPDATE mata_kuliah SET nama_mk = $1, sks = $2, semester_ke = $3 WHERE kode_mk = $4 RETURNING *`,
-        [nama_mk, sks, semester_ke, kode_mk]
-      );
-      return res.json(result.rows[0]);
-    }
-  } catch (err) {
-    return res.status(500).json({ error: err.message });
-  }
 
+  fallbackData = loadStore();
   const idx = fallbackData.mata_kuliah.findIndex(m => m.kode_mk === kode_mk);
   if (idx === -1) return res.status(404).json({ error: 'Mata kuliah tidak ditemukan' });
   fallbackData.mata_kuliah[idx] = { ...fallbackData.mata_kuliah[idx], nama_mk, sks: Number(sks), semester_ke: Number(semester_ke) };
+  saveStore(fallbackData);
+
+  if (isPostgresLive) {
+    try {
+      await query(
+        `UPDATE mata_kuliah SET nama_mk = $1, sks = $2, semester_ke = $3 WHERE kode_mk = $4`,
+        [nama_mk, sks, semester_ke, kode_mk]
+      );
+    } catch (err) {
+      console.warn('Postgres MK update note:', err.message);
+    }
+  }
+
   res.json(fallbackData.mata_kuliah[idx]);
 });
 
 app.delete('/api/matakuliah/:kode_mk', async (req, res) => {
   const { kode_mk } = req.params;
-  try {
-    if (isPostgresLive) {
+  fallbackData = loadStore();
+  fallbackData.mata_kuliah = fallbackData.mata_kuliah.filter(m => m.kode_mk !== kode_mk);
+  saveStore(fallbackData);
+
+  if (isPostgresLive) {
+    try {
       await query(`DELETE FROM mata_kuliah WHERE kode_mk = $1`, [kode_mk]);
-      return res.json({ message: 'Mata kuliah berhasil dihapus' });
+    } catch (err) {
+      console.warn('Postgres MK delete note:', err.message);
     }
-  } catch (err) {
-    return res.status(500).json({ error: err.message });
   }
 
-  fallbackData.mata_kuliah = fallbackData.mata_kuliah.filter(m => m.kode_mk !== kode_mk);
   res.json({ message: 'Mata kuliah berhasil dihapus' });
 });
 
@@ -676,6 +645,7 @@ app.post('/api/krs/add', async (req, res) => {
   }
 
   fallbackData.krs_detail.push({ id_krs: krs.id_krs, id_kelas: Number(id_kelas) });
+  saveStore(fallbackData);
   res.json({ success: true, message: 'Mata kuliah berhasil ditambahkan ke KRS!' });
 });
 
@@ -702,6 +672,7 @@ app.post('/api/krs/remove', async (req, res) => {
   const krs = fallbackData.krs.find(k => k.nim === nim);
   if (krs) {
     fallbackData.krs_detail = fallbackData.krs_detail.filter(kd => !(kd.id_krs === krs.id_krs && kd.id_kelas === Number(id_kelas)));
+    saveStore(fallbackData);
   }
   res.json({ success: true, message: 'Mata kuliah berhasil dihapus dari KRS!' });
 });
@@ -725,6 +696,7 @@ app.post('/api/krs/submit', async (req, res) => {
   if (krs) {
     krs.status = 'diajukan';
     krs.tgl_isi = new Date().toISOString().split('T')[0];
+    saveStore(fallbackData);
   }
   res.json({ success: true, krs, message: 'KRS berhasil diajukan ke Dosen Wali!' });
 });
@@ -742,7 +714,10 @@ app.post('/api/krs/reset', async (req, res) => {
   }
 
   const krs = fallbackData.krs.find(k => k.nim === nim);
-  if (krs) krs.status = 'draft';
+  if (krs) {
+    krs.status = 'draft';
+    saveStore(fallbackData);
+  }
   res.json({ success: true, message: 'Status KRS berhasil dikembalikan ke Draft.' });
 });
 
@@ -750,6 +725,7 @@ app.post('/api/krs/reset', async (req, res) => {
 // 7. PERWALIAN (DOSEN WALI PORTAL)
 // -------------------------------------------------------------
 app.get('/api/perwalian/:id_dosen', async (req, res) => {
+  fallbackData = loadStore();
   const { id_dosen } = req.params;
   try {
     if (isPostgresLive) {
@@ -770,7 +746,7 @@ app.get('/api/perwalian/:id_dosen', async (req, res) => {
         ORDER BY m.nim ASC
       `;
       const result = await query(q, [id_dosen]);
-      return res.json(result.rows);
+      if (result.rows && result.rows.length > 0) return res.json(result.rows);
     }
   } catch (err) {
     console.warn('Fallback perwalian list:', err.message);
@@ -822,6 +798,7 @@ app.post('/api/perwalian/approve', async (req, res) => {
   if (krs) {
     krs.status = 'disetujui';
     krs.catatan_dosen = catatan || 'KRS disetujui Dosen Pembimbing Akademik.';
+    saveStore(fallbackData);
   }
   res.json({ success: true, message: 'KRS Mahasiswa telah disetujui.' });
 });
@@ -842,6 +819,7 @@ app.post('/api/perwalian/revise', async (req, res) => {
   if (krs) {
     krs.status = 'revisi';
     krs.catatan_dosen = catatan || 'Harap perbaiki rencana studi.';
+    saveStore(fallbackData);
   }
   res.json({ success: true, message: 'KRS dikembalikan dengan catatan revisi.' });
 });
@@ -935,6 +913,14 @@ app.post('/api/testing/defects', (req, res) => {
 });
 
 // START SERVER
-app.listen(PORT, () => {
-  console.log(`[SERVER RUNNING] Express API running at http://localhost:${PORT}`);
+const server = app.listen(PORT, '0.0.0.0', () => {
+  console.log(`[SERVER RUNNING] Express API running at http://127.0.0.1:${PORT}`);
+});
+
+server.on('error', (err) => {
+  if (err.code === 'EADDRINUSE') {
+    console.error(`[SERVER ERROR] Port ${PORT} sedang dipakai oleh proses lain!`);
+  } else {
+    console.error('[SERVER ERROR]', err);
+  }
 });

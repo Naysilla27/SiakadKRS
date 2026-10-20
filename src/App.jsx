@@ -259,74 +259,77 @@ export default function App() {
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 flex flex-col font-sans transition-colors duration-200">
       
-      {/* Top Navbar */}
-      <Navbar
-        currentRole={currentRole}
-        setCurrentRole={setCurrentRole}
-        activeStudent={activeStudent}
-        setActiveStudent={setActiveStudent}
-        students={students}
-        activeDosen={activeDosen}
-        setActiveDosen={setActiveDosen}
-        dosenList={dosenList}
-        activeTab={activeTab}
-        setActiveTab={setActiveTab}
-        isDarkMode={isDarkMode}
-        setIsDarkMode={setIsDarkMode}
-      />
+      {/* Content wrapper hidden during printing */}
+      <div className="print:hidden flex flex-col min-h-screen">
+        {/* Top Navbar */}
+        <Navbar
+          currentRole={currentRole}
+          setCurrentRole={setCurrentRole}
+          activeStudent={activeStudent}
+          setActiveStudent={setActiveStudent}
+          students={students}
+          activeDosen={activeDosen}
+          setActiveDosen={setActiveDosen}
+          dosenList={dosenList}
+          activeTab={activeTab}
+          setActiveTab={setActiveTab}
+          isDarkMode={isDarkMode}
+          setIsDarkMode={setIsDarkMode}
+        />
 
-      {/* Main Content Area */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        
-        {activeTab === 'mahasiswa' && (
-          <MahasiswaPage
-            student={activeStudent}
-            krsData={krsData}
-            availableClasses={classes}
-            onAddCourse={handleAddCourse}
-            onRemoveCourse={handleRemoveCourse}
-            onSubmitKrs={handleSubmitKrs}
-            onResetKrs={handleResetKrs}
-            onOpenPrint={() => setIsPrintOpen(true)}
-          />
-        )}
+        {/* Main Content Area */}
+        <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          
+          {activeTab === 'mahasiswa' && (
+            <MahasiswaPage
+              student={activeStudent}
+              krsData={krsData}
+              availableClasses={classes}
+              onAddCourse={handleAddCourse}
+              onRemoveCourse={handleRemoveCourse}
+              onSubmitKrs={handleSubmitKrs}
+              onResetKrs={handleResetKrs}
+              onOpenPrint={() => setIsPrintOpen(true)}
+            />
+          )}
 
-        {activeTab === 'dosen' && (
-          <DosenPage
-            dosen={activeDosen}
-            advisees={advisees}
-            onApproveKrs={handleApproveKrs}
-            onReviseKrs={handleReviseKrs}
-            onViewStudentKrs={handleViewStudentKrs}
-          />
-        )}
+          {activeTab === 'dosen' && (
+            <DosenPage
+              dosen={activeDosen}
+              advisees={advisees}
+              onApproveKrs={handleApproveKrs}
+              onReviseKrs={handleReviseKrs}
+              onViewStudentKrs={handleViewStudentKrs}
+            />
+          )}
 
-        {activeTab === 'admin' && (
-          <AdminPage
-            students={students}
-            dosenList={dosenList}
-            courses={courses}
-            classes={classes}
-            onRefreshData={loadInitialData}
-            onNotify={setNotification}
-          />
-        )}
+          {activeTab === 'admin' && (
+            <AdminPage
+              students={students}
+              dosenList={dosenList}
+              courses={courses}
+              classes={classes}
+              onRefreshData={loadInitialData}
+              onNotify={setNotification}
+            />
+          )}
 
-        {activeTab === 'quality' && (
-          <QualityHubPage onNotify={setNotification} />
-        )}
+          {activeTab === 'quality' && (
+            <QualityHubPage onNotify={setNotification} />
+          )}
 
-      </main>
+        </main>
 
-      {/* Footer */}
-      <footer className="border-t border-slate-200 dark:border-slate-800 py-6 text-center text-xs text-slate-500 dark:text-slate-400 no-print">
-        <p className="font-semibold text-slate-700 dark:text-slate-300">
-          SIAKAD — Universitas Jenderal Achmad Yani (UNJANI)
-        </p>
-        <p className="mt-1 text-[11px]">
-          Mata Kuliah: <strong>SI611029 Implementasi dan Pengujian Sistem Informasi</strong> • Dosen: Dr. Ir. Sigit Anggoro & Irma Santikarama
-        </p>
-      </footer>
+        {/* Footer */}
+        <footer className="border-t border-slate-200 dark:border-slate-800 py-6 text-center text-xs text-slate-500 dark:text-slate-400 no-print">
+          <p className="font-semibold text-slate-700 dark:text-slate-300">
+            SIAKAD — Universitas Jenderal Achmad Yani (UNJANI)
+          </p>
+          <p className="mt-1 text-[11px]">
+            Mata Kuliah: <strong>SI611029 Implementasi dan Pengujian Sistem Informasi</strong> • Dosen: Dr. Ir. Sigit Anggoro & Irma Santikarama
+          </p>
+        </footer>
+      </div>
 
       {/* Printable KRS Modal */}
       <PrintKRSModal
@@ -339,10 +342,12 @@ export default function App() {
       />
 
       {/* Toast Notification */}
-      <Notification
-        notification={notification}
-        onClose={() => setNotification(null)}
-      />
+      <div className="print:hidden">
+        <Notification
+          notification={notification}
+          onClose={() => setNotification(null)}
+        />
+      </div>
 
     </div>
   );

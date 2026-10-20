@@ -152,7 +152,7 @@ export default function DosenPage({
                 <th className="p-3.5">Kontak</th>
                 <th className="p-3.5 text-center">Beban SKS</th>
                 <th className="p-3.5 text-center">Status KRS</th>
-                <th className="p-3.5">Tgl Pengajuan</th>
+                <th className="p-3.5">Tanggal Pengajuan</th>
                 <th className="p-3.5 text-right">Aksi Verifikasi</th>
               </tr>
             </thead>

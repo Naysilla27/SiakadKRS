@@ -11,11 +11,11 @@ export default function PrintKRSModal({ isOpen, onClose, student, krs, details, 
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm overflow-y-auto no-print">
-      <div className="bg-white text-slate-900 rounded-2xl shadow-2xl max-w-4xl w-full max-h-[92vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm overflow-y-auto print:fixed print:inset-0 print:p-0 print:bg-white print:overflow-visible print:z-[9999]">
+      <div className="bg-white text-slate-900 rounded-2xl shadow-2xl max-w-4xl w-full max-h-[92vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200 print:max-w-none print:w-full print:max-h-none print:shadow-none print:rounded-none print:overflow-visible print:border-none">
         
         {/* Modal Top Actions (Hidden on Print) */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 bg-slate-50 no-print">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 bg-slate-50 print:hidden no-print">
           <div className="flex items-center gap-2">
             <span className="flex h-3 w-3 rounded-full bg-emerald-500 animate-pulse"></span>
             <span className="font-semibold text-slate-700 text-sm">Pratinjau Lembar KRS Resmi</span>
@@ -38,7 +38,7 @@ export default function PrintKRSModal({ isOpen, onClose, student, krs, details, 
         </div>
 
         {/* Printable Official UNJANI KRS Document */}
-        <div id="print-area" className="p-8 sm:p-12 overflow-y-auto bg-white font-sans text-slate-900">
+        <div id="print-area" className="p-8 sm:p-12 overflow-y-auto bg-white font-sans text-slate-900 print:p-6 print:overflow-visible">
           
           {/* Header Kop Surat UNJANI */}
           <div className="flex items-center gap-6 border-b-4 border-emerald-900 pb-4 mb-6">
