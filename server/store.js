@@ -29,7 +29,10 @@ const INITIAL_DATA = {
     { kode_mk: 'SI611015', nama_mk: 'Algoritma & Struktur Data', sks: 4, semester_ke: 2 },
     { kode_mk: 'SI611030', nama_mk: 'Etika Profesi & Tata Kelola IT', sks: 2, semester_ke: 5 },
     { kode_mk: 'SI611031', nama_mk: 'Keamanan Sistem Informasi', sks: 3, semester_ke: 5 },
-    { kode_mk: 'SI611032', nama_mk: 'Data Warehouse & Business Intelligence', sks: 3, semester_ke: 5 }
+    { kode_mk: 'SI611032', nama_mk: 'Data Warehouse & Business Intelligence', sks: 3, semester_ke: 5 },
+    { kode_mk: 'SI611035', nama_mk: 'Kecerdasan Buatan & Machine Learning', sks: 3, semester_ke: 5 },
+    { kode_mk: 'SI611036', nama_mk: 'Cloud Computing & DevOps', sks: 3, semester_ke: 5 },
+    { kode_mk: 'SI611037', nama_mk: 'Pengujian & Jaminan Mutu Perangkat Lunak', sks: 3, semester_ke: 5 }
   ],
   kelas: [
     { id_kelas: 1, kode_mk: 'SI611029', id_periode: '20261', id_dosen: 1, nama_kelas: 'SI-A', kuota: 40, hari: 'Senin', jam: '08:00 - 10:30', ruang: 'R.301' },
@@ -41,6 +44,10 @@ const INITIAL_DATA = {
     { id_kelas: 7, kode_mk: 'SI611030', id_periode: '20261', id_dosen: 3, nama_kelas: 'SI-A', kuota: 45, hari: 'Rabu', jam: '13:00 - 14:40', ruang: 'R.105' },
     { id_kelas: 8, kode_mk: 'SI611031', id_periode: '20261', id_dosen: 1, nama_kelas: 'SI-A', kuota: 40, hari: 'Kamis', jam: '13:00 - 15:30', ruang: 'R.301' },
     { id_kelas: 9, kode_mk: 'SI611032', id_periode: '20261', id_dosen: 2, nama_kelas: 'SI-A', kuota: 35, hari: 'Jumat', jam: '13:30 - 16:00', ruang: 'Lab. Data' },
+    { id_kelas: 10, kode_mk: 'SI611015', id_periode: '20261', id_dosen: 3, nama_kelas: 'SI-A', kuota: 40, hari: 'Senin', jam: '13:00 - 16:20', ruang: 'Lab. Komputer 1' },
+    { id_kelas: 11, kode_mk: 'SI611035', id_periode: '20261', id_dosen: 1, nama_kelas: 'SI-A', kuota: 40, hari: 'Rabu', jam: '10:30 - 13:00', ruang: 'R.302' },
+    { id_kelas: 12, kode_mk: 'SI611036', id_periode: '20261', id_dosen: 2, nama_kelas: 'SI-A', kuota: 40, hari: 'Kamis', jam: '08:00 - 10:30', ruang: 'Lab. Cloud' },
+    { id_kelas: 13, kode_mk: 'SI611037', id_periode: '20261', id_dosen: 1, nama_kelas: 'SI-A', kuota: 40, hari: 'Jumat', jam: '09:00 - 11:30', ruang: 'R.205' }
   ],
   mahasiswa: [
     { nim: '2023900001', nama: 'Andi Pratama', email: 'andi.pratama@student.unjani.ac.id', tahun_masuk: 2023, status: 'aktif', kode_prodi: 'SIF', id_dosen_pa: 1, no_hp: '081234567890', ips_lalu: 3.85, max_sks: 24 },

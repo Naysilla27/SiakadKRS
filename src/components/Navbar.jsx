@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { 
   GraduationCap, 
   Users, 
@@ -7,7 +7,9 @@ import {
   Database, 
   Moon, 
   Sun,
-  ChevronDown
+  ChevronDown,
+  Check,
+  UserCheck
 } from 'lucide-react';
 
 export default function Navbar({ 
@@ -24,6 +26,19 @@ export default function Navbar({
   isDarkMode, 
   setIsDarkMode 
 }) {
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const dropdownRef = useRef(null);
+
+  // Close dropdown when clicking anywhere outside
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsDropdownOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
   return (
     <header className="sticky top-0 z-40 w-full glass-panel border-b border-slate-200/80 dark:border-slate-800/80 transition-colors">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -97,9 +112,15 @@ export default function Navbar({
           {/* Quick Role & User Switcher */}
           <div className="flex items-center gap-3">
             
-            {/* Context Switcher Dropdown */}
-            <div className="relative group">
-              <div className="flex items-center gap-2 bg-slate-100 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700/80 px-3 py-1.5 rounded-xl cursor-pointer hover:border-emerald-500 transition">
+            {/* Context Switcher Dropdown (Click-based, stays open until selection or click outside) */}
+            <div className="relative" ref={dropdownRef}>
+              <button
+                type="button"
+                onClick={() => setIsDropdownOpen(prev => !prev)}
+                className="flex items-center gap-2 bg-slate-100 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700/80 px-3 py-1.5 rounded-xl cursor-pointer hover:border-emerald-500 transition text-left focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                aria-expanded={isDropdownOpen}
+                aria-label="Pilih Peran dan Pengguna"
+              >
                 <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
                 <div className="text-left">
                   <span className="text-[10px] text-slate-400 font-medium block uppercase tracking-wider">Peran Aktif</span>
@@ -110,80 +131,113 @@ export default function Navbar({
                     {currentRole === 'qa' && 'QA & Software Tester'}
                   </span>
                 </div>
-                <ChevronDown className="w-3.5 h-3.5 text-slate-400 ml-1" />
-              </div>
+                <ChevronDown className={`w-3.5 h-3.5 text-slate-400 ml-1 transition-transform duration-200 ${isDropdownOpen ? 'rotate-180 text-emerald-600' : ''}`} />
+              </button>
 
-              {/* Dropdown Menu */}
-              <div className="absolute right-0 mt-2 w-64 bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 py-2 hidden group-hover:block animate-in fade-in zoom-in-95 duration-150 z-50">
-                <div className="px-3 py-1 text-[10px] font-bold tracking-wider text-slate-400 uppercase">
-                  Pilih Mahasiswa:
+              {/* Dropdown Menu - rendered on click, stays open */}
+              {isDropdownOpen && (
+                <div className="absolute right-0 mt-2 w-72 bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 py-2 animate-in fade-in zoom-in-95 duration-100 z-50 max-h-[80vh] overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800">
+                  
+                  {/* Mahasiswa Section */}
+                  <div className="py-1">
+                    <div className="px-3 py-1.5 text-[10px] font-bold tracking-wider text-emerald-700 dark:text-emerald-400 uppercase flex items-center justify-between">
+                      <span>Pilih Mahasiswa ({students.length}):</span>
+                    </div>
+                    <div className="max-h-48 overflow-y-auto space-y-0.5">
+                      {students.map(m => {
+                        const isSelected = activeStudent?.nim === m.nim && currentRole === 'mahasiswa';
+                        return (
+                          <button
+                            key={m.nim}
+                            onClick={() => {
+                              setActiveStudent(m);
+                              setCurrentRole('mahasiswa');
+                              setActiveTab('mahasiswa');
+                              setIsDropdownOpen(false);
+                            }}
+                            className={`w-full text-left px-3 py-2 text-xs flex items-center justify-between hover:bg-emerald-50 dark:hover:bg-slate-800 transition ${
+                              isSelected ? 'bg-emerald-50/80 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 font-bold border-l-4 border-emerald-600' : 'text-slate-700 dark:text-slate-300'
+                            }`}
+                          >
+                            <div className="truncate pr-2">
+                              <span className="block truncate">{m.nama}</span>
+                              <span className="font-mono text-[10px] text-slate-400">NIM: {m.nim}</span>
+                            </div>
+                            {isSelected && <Check className="w-4 h-4 text-emerald-600 flex-shrink-0" />}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Dosen Section */}
+                  <div className="py-1">
+                    <div className="px-3 py-1.5 text-[10px] font-bold tracking-wider text-emerald-700 dark:text-emerald-400 uppercase">
+                      Pilih Dosen PA ({dosenList.length}):
+                    </div>
+                    <div className="max-h-40 overflow-y-auto space-y-0.5">
+                      {dosenList.map(d => {
+                        const isSelected = activeDosen?.id_dosen === d.id_dosen && currentRole === 'dosen';
+                        return (
+                          <button
+                            key={d.id_dosen}
+                            onClick={() => {
+                              setActiveDosen(d);
+                              setCurrentRole('dosen');
+                              setActiveTab('dosen');
+                              setIsDropdownOpen(false);
+                            }}
+                            className={`w-full text-left px-3 py-2 text-xs flex items-center justify-between hover:bg-emerald-50 dark:hover:bg-slate-800 transition ${
+                              isSelected ? 'bg-emerald-50/80 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 font-bold border-l-4 border-emerald-600' : 'text-slate-700 dark:text-slate-300'
+                            }`}
+                          >
+                            <span className="truncate pr-2">{d.nama}</span>
+                            {isSelected && <Check className="w-4 h-4 text-emerald-600 flex-shrink-0" />}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Portals Section */}
+                  <div className="py-1">
+                    <button
+                      onClick={() => {
+                        setCurrentRole('admin');
+                        setActiveTab('admin');
+                        setIsDropdownOpen(false);
+                      }}
+                      className={`w-full text-left px-3 py-2 text-xs flex items-center justify-between hover:bg-emerald-50 dark:hover:bg-slate-800 transition ${
+                        currentRole === 'admin' ? 'text-emerald-700 font-bold bg-emerald-50/50 border-l-4 border-emerald-600' : 'text-slate-700 dark:text-slate-300'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2">
+                        <Settings className="w-3.5 h-3.5 text-slate-500" />
+                        <span>Admin Akademik (CRUD)</span>
+                      </div>
+                      {currentRole === 'admin' && <Check className="w-4 h-4 text-emerald-600" />}
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        setCurrentRole('qa');
+                        setActiveTab('quality');
+                        setIsDropdownOpen(false);
+                      }}
+                      className={`w-full text-left px-3 py-2 text-xs flex items-center justify-between hover:bg-amber-50 dark:hover:bg-slate-800 transition ${
+                        currentRole === 'qa' ? 'text-amber-600 font-bold bg-amber-50/50 border-l-4 border-amber-500' : 'text-slate-700 dark:text-slate-300'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2">
+                        <CheckSquare className="w-3.5 h-3.5 text-amber-600" />
+                        <span>QA & Tester (SI611029 Hub)</span>
+                      </div>
+                      {currentRole === 'qa' && <Check className="w-4 h-4 text-amber-600" />}
+                    </button>
+                  </div>
+
                 </div>
-                {students.map(m => (
-                  <button
-                    key={m.nim}
-                    onClick={() => {
-                      setActiveStudent(m);
-                      setCurrentRole('mahasiswa');
-                      setActiveTab('mahasiswa');
-                    }}
-                    className={`w-full text-left px-3 py-1.5 text-xs flex items-center justify-between hover:bg-emerald-50 dark:hover:bg-slate-800 transition ${
-                      activeStudent?.nim === m.nim && currentRole === 'mahasiswa' ? 'text-emerald-700 dark:text-emerald-400 font-bold bg-emerald-50/50' : 'text-slate-700 dark:text-slate-300'
-                    }`}
-                  >
-                    <span>{m.nama}</span>
-                    <span className="font-mono text-[10px] text-slate-400">{m.nim.slice(-4)}</span>
-                  </button>
-                ))}
-
-                <div className="my-1.5 border-t border-slate-100 dark:border-slate-800"></div>
-
-                <div className="px-3 py-1 text-[10px] font-bold tracking-wider text-slate-400 uppercase">
-                  Pilih Dosen PA:
-                </div>
-                {dosenList.map(d => (
-                  <button
-                    key={d.id_dosen}
-                    onClick={() => {
-                      setActiveDosen(d);
-                      setCurrentRole('dosen');
-                      setActiveTab('dosen');
-                    }}
-                    className={`w-full text-left px-3 py-1.5 text-xs flex items-center justify-between hover:bg-emerald-50 dark:hover:bg-slate-800 transition ${
-                      activeDosen?.id_dosen === d.id_dosen && currentRole === 'dosen' ? 'text-emerald-700 dark:text-emerald-400 font-bold bg-emerald-50/50' : 'text-slate-700 dark:text-slate-300'
-                    }`}
-                  >
-                    <span className="truncate">{d.nama}</span>
-                  </button>
-                ))}
-
-                <div className="my-1.5 border-t border-slate-100 dark:border-slate-800"></div>
-
-                <button
-                  onClick={() => {
-                    setCurrentRole('admin');
-                    setActiveTab('admin');
-                  }}
-                  className={`w-full text-left px-3 py-1.5 text-xs flex items-center gap-2 hover:bg-emerald-50 dark:hover:bg-slate-800 transition ${
-                    currentRole === 'admin' ? 'text-emerald-700 font-bold' : 'text-slate-700 dark:text-slate-300'
-                  }`}
-                >
-                  <Settings className="w-3.5 h-3.5 text-slate-500" />
-                  <span>Admin Akademik (CRUD)</span>
-                </button>
-
-                <button
-                  onClick={() => {
-                    setCurrentRole('qa');
-                    setActiveTab('quality');
-                  }}
-                  className={`w-full text-left px-3 py-1.5 text-xs flex items-center gap-2 hover:bg-emerald-50 dark:hover:bg-slate-800 transition ${
-                    currentRole === 'qa' ? 'text-amber-600 font-bold' : 'text-slate-700 dark:text-slate-300'
-                  }`}
-                >
-                  <CheckSquare className="w-3.5 h-3.5 text-amber-600" />
-                  <span>QA & Tester (SI611029 Hub)</span>
-                </button>
-              </div>
+              )}
             </div>
 
             {/* Dark mode button */}

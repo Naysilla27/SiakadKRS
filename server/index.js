@@ -12,6 +12,14 @@ const PORT = process.env.PORT || 5005;
 app.use(cors());
 app.use(express.json());
 
+// Force no-cache on all API endpoints so client CRUD updates immediately without refresh
+app.use((req, res, next) => {
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+  res.setHeader('Pragma', 'no-cache');
+  res.setHeader('Expires', '0');
+  next();
+});
+
 // Load persistent data store from disk (never lost across refreshes or restarts)
 let fallbackData = loadStore();
 
@@ -237,18 +245,22 @@ app.put('/api/mahasiswa/:nim', async (req, res) => {
 app.delete('/api/mahasiswa/:nim', async (req, res) => {
   const { nim } = req.params;
   fallbackData = loadStore();
+  const krsIds = fallbackData.krs.filter(k => k.nim === nim).map(k => k.id_krs);
+  fallbackData.krs_detail = fallbackData.krs_detail.filter(kd => !krsIds.includes(kd.id_krs));
+  fallbackData.krs = fallbackData.krs.filter(k => k.nim !== nim);
   fallbackData.mahasiswa = fallbackData.mahasiswa.filter(m => m.nim !== nim);
   saveStore(fallbackData);
 
   if (isPostgresLive) {
     try {
+      await query('DELETE FROM krs WHERE nim = $1', [nim]);
       await query('DELETE FROM mahasiswa WHERE nim = $1', [nim]);
     } catch (err) {
       console.warn('Postgres delete note:', err.message);
     }
   }
 
-  res.json({ message: 'Mahasiswa berhasil dihapus' });
+  res.json({ success: true, message: 'Mahasiswa berhasil dihapus' });
 });
 
 // -------------------------------------------------------------
@@ -371,6 +383,20 @@ app.post('/api/matakuliah', async (req, res) => {
   fallbackData = loadStore();
   const newMk = { kode_mk, nama_mk, sks: Number(sks), semester_ke: Number(semester_ke) };
   fallbackData.mata_kuliah.push(newMk);
+
+  // Auto-generate class SI-A for this course so it appears immediately in student picker
+  const newKelas = {
+    id_kelas: Date.now(),
+    kode_mk,
+    id_periode: '20261',
+    id_dosen: fallbackData.dosen[0]?.id_dosen || 1,
+    nama_kelas: 'SI-A',
+    kuota: 40,
+    hari: 'Kamis',
+    jam: '13:00 - 15:30',
+    ruang: 'R.305'
+  };
+  fallbackData.kelas.push(newKelas);
   saveStore(fallbackData);
 
   if (isPostgresLive) {
@@ -378,6 +404,10 @@ app.post('/api/matakuliah', async (req, res) => {
       await query(
         `INSERT INTO mata_kuliah (kode_mk, nama_mk, sks, semester_ke) VALUES ($1, $2, $3, $4)`,
         [kode_mk, nama_mk, sks || 3, semester_ke || 1]
+      );
+      await query(
+        `INSERT INTO kelas (kode_mk, id_periode, id_dosen, nama_kelas, kuota) VALUES ($1, $2, $3, $4, $5)`,
+        [kode_mk, '20261', 1, 'SI-A', 40]
       );
     } catch (err) {
       console.warn('Postgres MK insert note:', err.message);
@@ -414,6 +444,11 @@ app.put('/api/matakuliah/:kode_mk', async (req, res) => {
 app.delete('/api/matakuliah/:kode_mk', async (req, res) => {
   const { kode_mk } = req.params;
   fallbackData = loadStore();
+  
+  // Clean up associated classes and KRS enrollments
+  const classIds = fallbackData.kelas.filter(k => k.kode_mk === kode_mk).map(k => k.id_kelas);
+  fallbackData.krs_detail = fallbackData.krs_detail.filter(kd => !classIds.includes(kd.id_kelas));
+  fallbackData.kelas = fallbackData.kelas.filter(k => k.kode_mk !== kode_mk);
   fallbackData.mata_kuliah = fallbackData.mata_kuliah.filter(m => m.kode_mk !== kode_mk);
   saveStore(fallbackData);
 
@@ -425,7 +460,7 @@ app.delete('/api/matakuliah/:kode_mk', async (req, res) => {
     }
   }
 
-  res.json({ message: 'Mata kuliah berhasil dihapus' });
+  res.json({ success: true, message: 'Mata kuliah berhasil dihapus' });
 });
 
 // -------------------------------------------------------------
@@ -480,6 +515,7 @@ app.get('/api/kelas', async (req, res) => {
 // 6. KRS TRANSAKSI & VALIDASI ATURAN BISNIS
 // -------------------------------------------------------------
 app.get('/api/krs/:nim', async (req, res) => {
+  fallbackData = loadStore();
   const { nim } = req.params;
 
   try {
@@ -565,6 +601,7 @@ app.get('/api/krs/:nim', async (req, res) => {
 
 // Add course to KRS with strict business validations (Slide 9, 14, 15)
 app.post('/api/krs/add', async (req, res) => {
+  fallbackData = loadStore();
   const { nim, id_kelas } = req.body;
   if (!nim || !id_kelas) return res.status(400).json({ error: 'NIM dan ID Kelas wajib disertakan' });
 
@@ -651,6 +688,7 @@ app.post('/api/krs/add', async (req, res) => {
 
 // Remove course from KRS
 app.post('/api/krs/remove', async (req, res) => {
+  fallbackData = loadStore();
   const { nim, id_kelas } = req.body;
   try {
     if (isPostgresLive) {
@@ -679,6 +717,7 @@ app.post('/api/krs/remove', async (req, res) => {
 
 // Submit KRS (Ajukan ke Dosen Wali)
 app.post('/api/krs/submit', async (req, res) => {
+  fallbackData = loadStore();
   const { nim } = req.body;
   try {
     if (isPostgresLive) {
@@ -703,6 +742,7 @@ app.post('/api/krs/submit', async (req, res) => {
 
 // Reset KRS back to draft (Admin / Testing tool)
 app.post('/api/krs/reset', async (req, res) => {
+  fallbackData = loadStore();
   const { nim } = req.body;
   try {
     if (isPostgresLive) {

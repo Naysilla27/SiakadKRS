@@ -28,6 +28,7 @@ export default function AdminPage({
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState('create'); // 'create' or 'edit'
   const [currentEntity, setCurrentEntity] = useState(null);
+  const [isSaving, setIsSaving] = useState(false);
 
   // Form states
   const [formData, setFormData] = useState({});
@@ -83,10 +84,17 @@ export default function AdminPage({
       const res = await fetch(url, { method: 'DELETE' });
       if (res.ok) {
         onNotify({ type: 'success', title: 'Berhasil', message: 'Data berhasil dihapus dari sistem.' });
-        onRefreshData();
+        await onRefreshData();
       } else {
-        const data = await res.json();
-        onNotify({ type: 'error', title: 'Gagal Hapus', message: data.error || 'Terjadi kesalahan' });
+        let errMessage = 'Terjadi kesalahan saat menghapus data';
+        try {
+          const data = await res.json();
+          errMessage = data.error || data.detail || errMessage;
+        } catch {
+          const text = await res.text();
+          if (text) errMessage = text;
+        }
+        onNotify({ type: 'error', title: 'Gagal Hapus', message: errMessage });
       }
     } catch (err) {
       onNotify({ type: 'error', title: 'Error', message: err.message });
@@ -95,6 +103,7 @@ export default function AdminPage({
 
   const handleFormSubmit = async (e) => {
     e.preventDefault();
+    setIsSaving(true);
     try {
       let url = '';
       let method = modalMode === 'create' ? 'POST' : 'PUT';
@@ -120,13 +129,22 @@ export default function AdminPage({
           message: `Data berhasil ${modalMode === 'create' ? 'ditambahkan' : 'diperbarui'}!`
         });
         setIsModalOpen(false);
-        onRefreshData();
+        await onRefreshData();
       } else {
-        const data = await res.json();
-        onNotify({ type: 'error', title: 'Gagal Simpan', message: data.error || 'Terjadi kesalahan' });
+        let errMessage = 'Terjadi kesalahan saat menyimpan data';
+        try {
+          const data = await res.json();
+          errMessage = data.error || data.detail || errMessage;
+        } catch {
+          const text = await res.text();
+          if (text) errMessage = text;
+        }
+        onNotify({ type: 'error', title: 'Gagal Simpan', message: errMessage });
       }
     } catch (err) {
       onNotify({ type: 'error', title: 'Error', message: err.message });
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -589,9 +607,10 @@ export default function AdminPage({
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-bold shadow-md shadow-emerald-700/20"
+                  disabled={isSaving}
+                  className="px-4 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-bold shadow-md shadow-emerald-700/20 disabled:opacity-50 transition active:scale-95 flex items-center gap-1.5"
                 >
-                  {modalMode === 'create' ? 'Simpan Data' : 'Perbarui'}
+                  {isSaving ? 'Menyimpan...' : (modalMode === 'create' ? 'Simpan Data' : 'Perbarui')}
                 </button>
               </div>
 

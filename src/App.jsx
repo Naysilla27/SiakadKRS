@@ -54,34 +54,57 @@ export default function App() {
 
   const loadInitialData = async () => {
     try {
-      // 1. Fetch Students
-      const mhsRes = await fetch('/api/mahasiswa');
+      const ts = Date.now();
+      // 1. Fetch Students (with cache-busting timestamp)
+      const mhsRes = await fetch(`/api/mahasiswa?_t=${ts}`);
       const mhsData = await mhsRes.json();
       setStudents(mhsData);
-      if (mhsData.length > 0 && !activeStudent) {
-        setActiveStudent(mhsData[0]); // Default to Andi Pratama
+      
+      if (mhsData.length > 0) {
+        if (!activeStudent) {
+          setActiveStudent(mhsData[0]);
+        } else {
+          const currentInNew = mhsData.find(m => m.nim === activeStudent.nim);
+          if (currentInNew) {
+            setActiveStudent(currentInNew);
+          } else {
+            setActiveStudent(mhsData[0]);
+          }
+        }
       }
 
       // 2. Fetch Dosen
-      const dosenRes = await fetch('/api/dosen');
+      const dosenRes = await fetch(`/api/dosen?_t=${ts}`);
       const dosenData = await dosenRes.json();
       setDosenList(dosenData);
-      if (dosenData.length > 0 && !activeDosen) {
-        setActiveDosen(dosenData[0]); // Default to Dr. Sigit Anggoro
+      
+      if (dosenData.length > 0) {
+        if (!activeDosen) {
+          setActiveDosen(dosenData[0]);
+        } else {
+          const currentInNew = dosenData.find(d => d.id_dosen === activeDosen.id_dosen);
+          if (currentInNew) {
+            setActiveDosen(currentInNew);
+          } else {
+            setActiveDosen(dosenData[0]);
+          }
+        }
       }
 
       // 3. Fetch Mata Kuliah
-      const mkRes = await fetch('/api/matakuliah');
+      const mkRes = await fetch(`/api/matakuliah?_t=${ts}`);
       const mkData = await mkRes.json();
       setCourses(mkData);
 
       // 4. Fetch Classes
-      const klRes = await fetch('/api/kelas');
+      const klRes = await fetch(`/api/kelas?_t=${ts}`);
       const klData = await klRes.json();
       setClasses(klData);
 
+      return { students: mhsData, dosenList: dosenData, courses: mkData, classes: klData };
     } catch (err) {
       console.error('Error fetching initial data:', err);
+      return null;
     }
   };
 
