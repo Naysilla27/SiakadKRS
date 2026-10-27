@@ -219,7 +219,12 @@ INSERT INTO mata_kuliah (kode_mk, nama_mk, sks, semester_ke) VALUES
 ('SI611015', 'Algoritma & Struktur Data', 4, 2),
 ('SI611030', 'Etika Profesi & Tata Kelola IT', 2, 5),
 ('SI611031', 'Keamanan Sistem Informasi', 3, 5),
-('SI611032', 'Data Warehouse & Business Intelligence', 3, 5)
+('SI611032', 'Data Warehouse & Business Intelligence', 3, 5),
+('SI611035', 'Kecerdasan Buatan & Machine Learning', 3, 5),
+('SI611036', 'Cloud Computing & DevOps', 3, 5),
+('SI611037', 'Pengujian & Jaminan Mutu Perangkat Lunak', 3, 5),
+('SI611038', 'Manajemen Layanan TI (ITSM / ITIL)', 3, 5),
+('SI611039', 'Rekayasa Sistem Berbasis Komponen', 3, 5)
 ON CONFLICT (kode_mk) DO NOTHING;
 
 -- Mahasiswa
@@ -240,7 +245,12 @@ INSERT INTO kelas (kode_mk, id_periode, id_dosen, nama_kelas, kuota) VALUES
 ('SI611021', '20261', 1, 'SI-A', 40),
 ('SI611030', '20261', 3, 'SI-A', 45),
 ('SI611031', '20261', 1, 'SI-A', 40),
-('SI611032', '20261', 2, 'SI-A', 35)
+('SI611032', '20261', 2, 'SI-A', 35),
+('SI611035', '20261', 1, 'SI-A', 40),
+('SI611036', '20261', 2, 'SI-A', 40),
+('SI611037', '20261', 1, 'SI-A', 40),
+('SI611038', '20261', 3, 'SI-A', 40),
+('SI611039', '20261', 2, 'SI-A', 40)
 ON CONFLICT (kode_mk, id_periode, nama_kelas) DO NOTHING;
 
 -- KRS Mahasiswa
