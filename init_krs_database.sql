@@ -198,9 +198,9 @@ ON CONFLICT (kode_prodi) DO NOTHING;
 
 -- Dosen
 INSERT INTO dosen (nidn, nama, email, kode_prodi) VALUES
-('0415088001', 'Dr. Ir. Sigit Anggoro, S.T., M.T., IPM', 'sigit.anggoro@unjani.ac.id', 'SIF'),
-('0422118502', 'Irma Santikarama, S.Kom., M.T', 'irma.santikarama@unjani.ac.id', 'SIF'),
-('0410027501', 'Dra. Aisyah Rahmawati, M.T.', 'aisyah@unjani.ac.id', 'SIF')
+('0415088001', 'Dr. Ir. Sigit Anggoro, S.T., M.T., IPM', 'sigit.anggoro@lecturer.unjani.ac.id', 'SIF'),
+('0422118502', 'Irma Santikarama, S.Kom., M.T', 'irma.santikarama@lecturer.unjani.ac.id', 'SIF'),
+('0410027501', 'Dea Destiani', 'Dea.Destiani@lecturer.unjani.ac.id', 'SIF')
 ON CONFLICT (nidn) DO NOTHING;
 
 -- Periode
@@ -227,12 +227,14 @@ INSERT INTO mata_kuliah (kode_mk, nama_mk, sks, semester_ke) VALUES
 ('SI611039', 'Rekayasa Sistem Berbasis Komponen', 3, 5)
 ON CONFLICT (kode_mk) DO NOTHING;
 
--- Mahasiswa
+-- Mahasiswa (Mahasiswa Utama & Akun Demonstrasi)
 INSERT INTO mahasiswa (nim, nama, email, tahun_masuk, status, kode_prodi, id_dosen_pa, no_hp) VALUES
-('2023900001', 'Andi Pratama', 'andi.pratama@student.unjani.ac.id', 2023, 'aktif', 'SIF', 1, '081234567890'),
-('2023900002', 'Bunga Lestari', 'bunga.lestari@student.unjani.ac.id', 2023, 'aktif', 'SIF', 2, '081298765432'),
-('2023900003', 'Citra Dewi', 'citra.dewi@student.unjani.ac.id', 2023, 'aktif', 'SIF', 1, '081377889900'),
-('2023900004', 'Dimas Saputra', 'dimas.saputra@student.unjani.ac.id', 2023, 'aktif', 'SIF', 2, '081455667788')
+('2450231059', 'Naysilla Sifa Aprilianissa', 'nssa.24@si.unjani.ac.id', 2024, 'aktif', 'SIF', 2, '081234567890'),
+('2450231054', 'Meila Fitri', 'mfi.24@si.unjani.ac.id', 2023, 'aktif', 'SIF', 2, '081298765432'),
+('2450231046', 'Anita Nurhayati', 'ani.24@si.unjani.ac.id', 2024, 'aktif', 'SIF', 1, '081377889900'),
+('2450231051', 'Nayla Putri Romdoni', 'npr.24@si.unjani.ac.id', 2024, 'aktif', 'SIF', 1, '081455667788'),
+('2023900001', 'Andi Pratama', 'andi.pratama@student.unjani.ac.id', 2023, 'aktif', 'SIF', 1, '081234567891'),
+('2023900004', 'Dimas Saputra', 'dimas.saputra@student.unjani.ac.id', 2023, 'aktif', 'SIF', 2, '081455667789')
 ON CONFLICT (nim) DO NOTHING;
 
 -- Kelas
@@ -254,10 +256,12 @@ INSERT INTO kelas (kode_mk, id_periode, id_dosen, nama_kelas, kuota) VALUES
 ON CONFLICT (kode_mk, id_periode, nama_kelas) DO NOTHING;
 
 -- KRS Mahasiswa
-INSERT INTO krs (nim, id_periode, tgl_isi, status) VALUES
-('2023900001', '20261', '2026-09-02', 'disetujui'),
-('2023900002', '20261', '2026-09-03', 'diajukan'),
-('2023900004', '20261', '2026-09-04', 'draft')
+INSERT INTO krs (nim, id_periode, tgl_isi, status, catatan_dosen) VALUES
+('2450231059', '20261', '2026-10-20', 'disetujui', 'Acc Silahkan Cek Jadwal yang Sudah Ada'),
+('2450231054', '20261', '2026-10-21', 'diajukan', 'Menunggu review Dosen PA.'),
+('2450231046', '20261', '2026-10-22', 'draft', ''),
+('2450231051', '20261', '2026-10-23', 'draft', ''),
+('2023900001', '20261', '2026-09-02', 'disetujui', 'Rencana studi sangat baik.')
 ON CONFLICT (nim, id_periode) DO NOTHING;
 
 -- KRS Detail (Mata kuliah yang diambil)

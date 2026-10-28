@@ -23,10 +23,38 @@ app.use((req, res, next) => {
 // Load persistent data store from disk (never lost across refreshes or restarts)
 let fallbackData = loadStore();
 
-// Check DB status on startup
+// Check DB status on startup & auto-sync persistent store data to PostgreSQL
 let isPostgresLive = false;
-testConnection().then(res => {
+testConnection().then(async res => {
   isPostgresLive = res.connected;
+  if (isPostgresLive) {
+    try {
+      // 1. Auto-sync Dosen from store if missing
+      for (const d of fallbackData.dosen) {
+        await query(`
+          INSERT INTO dosen (nidn, nama, email, kode_prodi)
+          VALUES ($1, $2, $3, $4)
+          ON CONFLICT (nidn) DO NOTHING
+        `, [d.nidn, d.nama, d.email || null, d.kode_prodi || 'SIF']);
+      }
+
+      // 2. Auto-sync Mahasiswa from store if missing
+      for (const m of fallbackData.mahasiswa) {
+        await query(`
+          INSERT INTO mahasiswa (nim, nama, email, tahun_masuk, status, kode_prodi, id_dosen_pa, no_hp)
+          VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+          ON CONFLICT (nim) DO UPDATE SET
+            nama = EXCLUDED.nama,
+            email = EXCLUDED.email,
+            tahun_masuk = EXCLUDED.tahun_masuk,
+            id_dosen_pa = EXCLUDED.id_dosen_pa
+        `, [m.nim, m.nama, m.email || null, m.tahun_masuk || 2024, m.status || 'aktif', m.kode_prodi || 'SIF', m.id_dosen_pa || 1, m.no_hp || null]);
+      }
+      console.log('[AUTO-SYNC] Data mahasiswa & dosen tersinkronisasi ke PostgreSQL.');
+    } catch (syncErr) {
+      console.warn('[AUTO-SYNC NOTE]:', syncErr.message);
+    }
+  }
 });
 
 // Helper: Calculate SKS limit based on IPS (Slide 9 & 14)

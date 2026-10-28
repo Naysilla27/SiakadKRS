@@ -13,9 +13,9 @@ const INITIAL_DATA = {
     { kode_prodi: 'IND', nama_prodi: 'Teknik Industri', jenjang: 'S1' },
   ],
   dosen: [
-    { id_dosen: 1, nidn: '0415088001', nama: 'Dr. Ir. Sigit Anggoro, S.T., M.T., IPM', email: 'sigit.anggoro@unjani.ac.id', kode_prodi: 'SIF' },
-    { id_dosen: 2, nidn: '0422118502', nama: 'Irma Santikarama, S.Kom., M.T', email: 'irma.santikarama@unjani.ac.id', kode_prodi: 'SIF' },
-    { id_dosen: 3, nidn: '0410027501', nama: 'Dra. Aisyah Rahmawati, M.T.', email: 'aisyah@unjani.ac.id', kode_prodi: 'SIF' },
+    { id_dosen: 1, nidn: '0415088001', nama: 'Dr. Ir. Sigit Anggoro, S.T., M.T., IPM', email: 'sigit.anggoro@lecturer.unjani.ac.id', kode_prodi: 'SIF' },
+    { id_dosen: 2, nidn: '0422118502', nama: 'Irma Santikarama, S.Kom., M.T', email: 'irma.santikarama@lecturer.unjani.ac.id', kode_prodi: 'SIF' },
+    { id_dosen: 3, nidn: '0410027501', nama: 'Dea Destiani', email: 'Dea.Destiani@lecturer.unjani.ac.id', kode_prodi: 'SIF' },
   ],
   periode: [
     { id_periode: '20261', nama_periode: 'Semester Ganjil 2026/2027', tgl_mulai: '2026-09-01', tgl_selesai: '2027-01-31' },
@@ -24,52 +24,49 @@ const INITIAL_DATA = {
     { kode_mk: 'SI611029', nama_mk: 'Implementasi dan Pengujian Sistem Informasi', sks: 3, semester_ke: 5 },
     { kode_mk: 'SI611027', nama_mk: 'Manajemen Proyek TI', sks: 3, semester_ke: 5 },
     { kode_mk: 'SI611028', nama_mk: 'Arsitektur Enterprise', sks: 2, semester_ke: 5 },
-    { kode_mk: 'SI611020', nama_mk: 'Basis Data Lanjut', sks: 3, semester_ke: 3 },
-    { kode_mk: 'SI611021', nama_mk: 'Pemrograman Web Modern', sks: 3, semester_ke: 3 },
-    { kode_mk: 'SI611015', nama_mk: 'Algoritma & Struktur Data', sks: 4, semester_ke: 2 },
     { kode_mk: 'SI611030', nama_mk: 'Etika Profesi & Tata Kelola IT', sks: 2, semester_ke: 5 },
     { kode_mk: 'SI611031', nama_mk: 'Keamanan Sistem Informasi', sks: 3, semester_ke: 5 },
     { kode_mk: 'SI611032', nama_mk: 'Data Warehouse & Business Intelligence', sks: 3, semester_ke: 5 },
     { kode_mk: 'SI611035', nama_mk: 'Kecerdasan Buatan & Machine Learning', sks: 3, semester_ke: 5 },
     { kode_mk: 'SI611036', nama_mk: 'Cloud Computing & DevOps', sks: 3, semester_ke: 5 },
-    { kode_mk: 'SI611037', nama_mk: 'Pengujian & Jaminan Mutu Perangkat Lunak', sks: 3, semester_ke: 5 }
+    { kode_mk: 'SI611037', nama_mk: 'Pengujian & Jaminan Mutu Perangkat Lunak', sks: 3, semester_ke: 5 },
+    { kode_mk: 'SI611038', nama_mk: 'Manajemen Layanan TI (ITSM / ITIL)', sks: 3, semester_ke: 5 },
+    { kode_mk: 'SI611039', nama_mk: 'Rekayasa Sistem Berbasis Komponen', sks: 3, semester_ke: 5 },
+    { kode_mk: 'SI611020', nama_mk: 'Basis Data Lanjut', sks: 3, semester_ke: 3 },
+    { kode_mk: 'SI611021', nama_mk: 'Pemrograman Web Modern', sks: 3, semester_ke: 3 }
   ],
   kelas: [
     { id_kelas: 1, kode_mk: 'SI611029', id_periode: '20261', id_dosen: 1, nama_kelas: 'SI-A', kuota: 40, hari: 'Senin', jam: '08:00 - 10:30', ruang: 'R.301' },
     { id_kelas: 2, kode_mk: 'SI611029', id_periode: '20261', id_dosen: 2, nama_kelas: 'SI-B', kuota: 40, hari: 'Selasa', jam: '13:00 - 15:30', ruang: 'R.302' },
     { id_kelas: 3, kode_mk: 'SI611027', id_periode: '20261', id_dosen: 2, nama_kelas: 'SI-A', kuota: 40, hari: 'Rabu', jam: '08:00 - 10:30', ruang: 'R.301' },
     { id_kelas: 4, kode_mk: 'SI611028', id_periode: '20261', id_dosen: 1, nama_kelas: 'SI-A', kuota: 35, hari: 'Kamis', jam: '10:30 - 12:10', ruang: 'R.204' },
-    { id_kelas: 5, kode_mk: 'SI611020', id_periode: '20261', id_dosen: 3, nama_kelas: 'SI-A', kuota: 40, hari: 'Jumat', jam: '08:00 - 10:30', ruang: 'Lab. Komputer 2' },
-    { id_kelas: 6, kode_mk: 'SI611021', id_periode: '20261', id_dosen: 1, nama_kelas: 'SI-A', kuota: 40, hari: 'Selasa', jam: '08:00 - 10:30', ruang: 'Lab. Web' },
     { id_kelas: 7, kode_mk: 'SI611030', id_periode: '20261', id_dosen: 3, nama_kelas: 'SI-A', kuota: 45, hari: 'Rabu', jam: '13:00 - 14:40', ruang: 'R.105' },
     { id_kelas: 8, kode_mk: 'SI611031', id_periode: '20261', id_dosen: 1, nama_kelas: 'SI-A', kuota: 40, hari: 'Kamis', jam: '13:00 - 15:30', ruang: 'R.301' },
     { id_kelas: 9, kode_mk: 'SI611032', id_periode: '20261', id_dosen: 2, nama_kelas: 'SI-A', kuota: 35, hari: 'Jumat', jam: '13:30 - 16:00', ruang: 'Lab. Data' },
-    { id_kelas: 10, kode_mk: 'SI611015', id_periode: '20261', id_dosen: 3, nama_kelas: 'SI-A', kuota: 40, hari: 'Senin', jam: '13:00 - 16:20', ruang: 'Lab. Komputer 1' },
     { id_kelas: 11, kode_mk: 'SI611035', id_periode: '20261', id_dosen: 1, nama_kelas: 'SI-A', kuota: 40, hari: 'Rabu', jam: '10:30 - 13:00', ruang: 'R.302' },
     { id_kelas: 12, kode_mk: 'SI611036', id_periode: '20261', id_dosen: 2, nama_kelas: 'SI-A', kuota: 40, hari: 'Kamis', jam: '08:00 - 10:30', ruang: 'Lab. Cloud' },
-    { id_kelas: 13, kode_mk: 'SI611037', id_periode: '20261', id_dosen: 1, nama_kelas: 'SI-A', kuota: 40, hari: 'Jumat', jam: '09:00 - 11:30', ruang: 'R.205' }
+    { id_kelas: 13, kode_mk: 'SI611037', id_periode: '20261', id_dosen: 1, nama_kelas: 'SI-A', kuota: 40, hari: 'Jumat', jam: '09:00 - 11:30', ruang: 'R.205' },
+    { id_kelas: 14, kode_mk: 'SI611038', id_periode: '20261', id_dosen: 3, nama_kelas: 'SI-A', kuota: 40, hari: 'Senin', jam: '13:30 - 16:00', ruang: 'R.206' },
+    { id_kelas: 15, kode_mk: 'SI611039', id_periode: '20261', id_dosen: 2, nama_kelas: 'SI-A', kuota: 40, hari: 'Selasa', jam: '10:30 - 13:00', ruang: 'R.303' }
   ],
   mahasiswa: [
-    { nim: '2023900001', nama: 'Andi Pratama', email: 'andi.pratama@student.unjani.ac.id', tahun_masuk: 2023, status: 'aktif', kode_prodi: 'SIF', id_dosen_pa: 1, no_hp: '081234567890', ips_lalu: 3.85, max_sks: 24 },
-    { nim: '2023900002', nama: 'Bunga Lestari', email: 'bunga.lestari@student.unjani.ac.id', tahun_masuk: 2023, status: 'aktif', kode_prodi: 'SIF', id_dosen_pa: 2, no_hp: '081298765432', ips_lalu: 3.40, max_sks: 24 },
-    { nim: '2023900003', nama: 'Citra Dewi', email: 'citra.dewi@student.unjani.ac.id', tahun_masuk: 2023, status: 'aktif', kode_prodi: 'SIF', id_dosen_pa: 1, no_hp: '081377889900', ips_lalu: 2.75, max_sks: 21 },
-    { nim: '2023900004', nama: 'Dimas Saputra', email: 'dimas.saputra@student.unjani.ac.id', tahun_masuk: 2023, status: 'aktif', kode_prodi: 'SIF', id_dosen_pa: 2, no_hp: '081455667788', ips_lalu: 3.10, max_sks: 24 }
+    { nim: '2450231059', nama: 'Naysilla Sifa Aprilianissa', email: 'nssa.24@si.unjani.ac.id', tahun_masuk: 2024, status: 'aktif', kode_prodi: 'SIF', id_dosen_pa: 2, no_hp: '', ips_lalu: 3.5, max_sks: 24 },
+    { nim: '2450231054', nama: 'Meila Fitri', email: 'mfi.24@si.unjani.ac.id', tahun_masuk: 2023, status: 'aktif', kode_prodi: 'SIF', id_dosen_pa: 2, no_hp: '', ips_lalu: 3.5, max_sks: 24 },
+    { nim: '2450231046', nama: 'Anita Nurhayati', email: 'ani.24@si.unjani.ac.id', tahun_masuk: 2024, status: 'aktif', kode_prodi: 'SIF', id_dosen_pa: 1, no_hp: '', ips_lalu: 3.5, max_sks: 24 },
+    { nim: '2450231051', nama: 'Nayla Putri Romdoni', email: 'npr.24@si.unjani.ac.id', tahun_masuk: 2024, status: 'aktif', kode_prodi: 'SIF', id_dosen_pa: 1, no_hp: '', ips_lalu: 3.5, max_sks: 24 }
   ],
   krs: [
-    { id_krs: 1, nim: '2023900001', id_periode: '20261', tgl_isi: '2026-09-02', status: 'disetujui', catatan_dosen: 'Rencana studi sangat baik. Pertahankan prestasimu!' },
-    { id_krs: 2, nim: '2023900002', id_periode: '20261', tgl_isi: '2026-09-03', status: 'diajukan', catatan_dosen: 'Menunggu review Dosen PA.' },
-    { id_krs: 3, nim: '2023900004', id_periode: '20261', tgl_isi: '2026-09-04', status: 'draft', catatan_dosen: '' }
+    { id_krs: 1792513398787, nim: '2450231059', id_periode: '20261', tgl_isi: '2026-10-20', status: 'disetujui', catatan_dosen: 'Acc Silahkan Cek Jadwal yang Sudah Ada' }
   ],
   krs_detail: [
-    { id_krs: 1, id_kelas: 1 },
-    { id_krs: 1, id_kelas: 3 },
-    { id_krs: 1, id_kelas: 4 },
-    { id_krs: 1, id_kelas: 6 },
-    { id_krs: 2, id_kelas: 2 },
-    { id_krs: 2, id_kelas: 3 },
-    { id_krs: 2, id_kelas: 4 },
-    { id_krs: 3, id_kelas: 1 },
-    { id_krs: 3, id_kelas: 3 },
+    { id_krs: 1792513398787, id_kelas: 1 },
+    { id_krs: 1792513398787, id_kelas: 2 },
+    { id_krs: 1792513398787, id_kelas: 3 },
+    { id_krs: 1792513398787, id_kelas: 4 },
+    { id_krs: 1792513398787, id_kelas: 7 },
+    { id_krs: 1792513398787, id_kelas: 8 },
+    { id_krs: 1792513398787, id_kelas: 9 },
+    { id_krs: 1792513398787, id_kelas: 12 }
   ],
   aturan_akademik: [
     { kode: 'maks_sks', nilai: 24, keterangan: 'Batas maksimum SKS per semester' }
