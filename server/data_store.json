@@ -21,21 +21,21 @@
       "id_dosen": 1,
       "nidn": "0415088001",
       "nama": "Dr. Ir. Sigit Anggoro, S.T., M.T., IPM",
-      "email": "sigit.anggoro@unjani.ac.id",
+      "email": "sigit.anggoro@lecturer.unjani.ac.id",
       "kode_prodi": "SIF"
     },
     {
       "id_dosen": 2,
       "nidn": "0422118502",
       "nama": "Irma Santikarama, S.Kom., M.T",
-      "email": "irma.santikarama@unjani.ac.id",
+      "email": "irma.santikarama@lecturer.unjani.ac.id",
       "kode_prodi": "SIF"
     },
     {
       "id_dosen": 3,
       "nidn": "0410027501",
-      "nama": "Dra. Aisyah Rahmawati, M.T.",
-      "email": "aisyah@unjani.ac.id",
+      "nama": "Dea Destiani",
+      "email": "Dea.Destiani@lecturer.unjani.ac.id",
       "kode_prodi": "SIF"
     }
   ],
@@ -263,54 +263,6 @@
   ],
   "mahasiswa": [
     {
-      "nim": "2023900001",
-      "nama": "Andi Pratama",
-      "email": "andi.pratama@student.unjani.ac.id",
-      "tahun_masuk": 2023,
-      "status": "aktif",
-      "kode_prodi": "SIF",
-      "id_dosen_pa": 1,
-      "no_hp": "081234567890",
-      "ips_lalu": 3.85,
-      "max_sks": 24
-    },
-    {
-      "nim": "2023900002",
-      "nama": "Bunga Lestari",
-      "email": "bunga.lestari@student.unjani.ac.id",
-      "tahun_masuk": 2023,
-      "status": "aktif",
-      "kode_prodi": "SIF",
-      "id_dosen_pa": 2,
-      "no_hp": "081298765432",
-      "ips_lalu": 3.4,
-      "max_sks": 24
-    },
-    {
-      "nim": "2023900003",
-      "nama": "Citra Dewi",
-      "email": "citra.dewi@student.unjani.ac.id",
-      "tahun_masuk": 2023,
-      "status": "aktif",
-      "kode_prodi": "SIF",
-      "id_dosen_pa": 1,
-      "no_hp": "081377889900",
-      "ips_lalu": 2.75,
-      "max_sks": 21
-    },
-    {
-      "nim": "2023900004",
-      "nama": "Dimas Saputra",
-      "email": "dimas.saputra@student.unjani.ac.id",
-      "tahun_masuk": 2023,
-      "status": "aktif",
-      "kode_prodi": "SIF",
-      "id_dosen_pa": 2,
-      "no_hp": "081455667788",
-      "ips_lalu": 3.1,
-      "max_sks": 24
-    },
-    {
       "nim": "2450231059",
       "nama": "Naysilla Sifa Aprilianissa",
       "email": "nssa.24@si.unjani.ac.id",
@@ -321,33 +273,45 @@
       "no_hp": "",
       "ips_lalu": 3.5,
       "max_sks": 24
+    },
+    {
+      "nim": "2450231054",
+      "nama": "Meila Fitri",
+      "email": "mfi.24@si.unjani.ac.id",
+      "tahun_masuk": 2023,
+      "status": "aktif",
+      "kode_prodi": "SIF",
+      "id_dosen_pa": 2,
+      "no_hp": "",
+      "ips_lalu": 3.5,
+      "max_sks": 24
+    },
+    {
+      "nim": "2450231046",
+      "nama": "Anita Nurhayati",
+      "email": "ani.24@si.unjani.ac.id",
+      "tahun_masuk": 2024,
+      "status": "aktif",
+      "kode_prodi": "SIF",
+      "id_dosen_pa": 1,
+      "no_hp": "",
+      "ips_lalu": 3.5,
+      "max_sks": 24
+    },
+    {
+      "nim": "2450231051",
+      "nama": "Nayla Putri Romdoni",
+      "email": "npr.24@si.unjani.ac.id",
+      "tahun_masuk": 2024,
+      "status": "aktif",
+      "kode_prodi": "SIF",
+      "id_dosen_pa": 1,
+      "no_hp": "",
+      "ips_lalu": 3.5,
+      "max_sks": 24
     }
   ],
   "krs": [
-    {
-      "id_krs": 1,
-      "nim": "2023900001",
-      "id_periode": "20261",
-      "tgl_isi": "2026-09-02",
-      "status": "draft",
-      "catatan_dosen": "Rencana studi sangat baik. Pertahankan prestasimu!"
-    },
-    {
-      "id_krs": 2,
-      "nim": "2023900002",
-      "id_periode": "20261",
-      "tgl_isi": "2026-09-03",
-      "status": "draft",
-      "catatan_dosen": "Menunggu review Dosen PA."
-    },
-    {
-      "id_krs": 3,
-      "nim": "2023900004",
-      "id_periode": "20261",
-      "tgl_isi": "2026-10-20",
-      "status": "disetujui",
-      "catatan_dosen": "Acc"
-    },
     {
       "id_krs": 1792513398787,
       "nim": "2450231059",
@@ -358,54 +322,6 @@
     }
   ],
   "krs_detail": [
-    {
-      "id_krs": 1,
-      "id_kelas": 1
-    },
-    {
-      "id_krs": 1,
-      "id_kelas": 3
-    },
-    {
-      "id_krs": 1,
-      "id_kelas": 4
-    },
-    {
-      "id_krs": 2,
-      "id_kelas": 3
-    },
-    {
-      "id_krs": 2,
-      "id_kelas": 4
-    },
-    {
-      "id_krs": 3,
-      "id_kelas": 1
-    },
-    {
-      "id_krs": 3,
-      "id_kelas": 2
-    },
-    {
-      "id_krs": 3,
-      "id_kelas": 3
-    },
-    {
-      "id_krs": 3,
-      "id_kelas": 4
-    },
-    {
-      "id_krs": 3,
-      "id_kelas": 7
-    },
-    {
-      "id_krs": 3,
-      "id_kelas": 8
-    },
-    {
-      "id_krs": 3,
-      "id_kelas": 11
-    },
     {
       "id_krs": 1792513398787,
       "id_kelas": 1
@@ -437,10 +353,6 @@
     {
       "id_krs": 1792513398787,
       "id_kelas": 12
-    },
-    {
-      "id_krs": 1,
-      "id_kelas": 11
     }
   ],
   "aturan_akademik": [
