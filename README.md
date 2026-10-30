@@ -29,7 +29,7 @@ Aplikasi ini dibangun menggunakan arsitektur modern berbasis **Client-Server RES
 ### B. Framework, Library, & Tools
 * **Frontend**: React 18, Vite (Fast Bundler & HMR), Tailwind CSS, Lucide React (Icon System).
 * **Backend**: Express.js, `pg` (node-postgres connection pool), `cors`, `dotenv`.
-* **Database & Storage**: PostgreSQL 14+, pgAdmin 4, DBeaver, serta **Smart Persistent JSON Fallback Store** (`server/data_store.json`).
+* **Database & Storage**: PostgreSQL 14+/17+, pgAdmin 4, DBeaver. Terintegrasi penuh langsung ke real database PostgreSQL (Lokal / Cloud).
 * **Version Control**: Git & GitHub.
 
 ---
@@ -188,9 +188,7 @@ ipsi_krs/
 │   │   └── 001_referensi.sql     # Data awal referensi akademik
 │   └── test_constraints.py      # Skrip pengujian 16 constraint database
 ├── server/                       # Backend REST API Express
-│   ├── db.js                     # Konfigurasi pool koneksi PostgreSQL
-│   ├── store.js                  # Persistent JSON storage driver
-│   ├── data_store.json           # File penyimpanan data sinkron lokal
+│   ├── db.js                     # Pool koneksi real Supabase / PostgreSQL & auto-sync
 │   └── index.js                  # Routing REST API, validasi, & trigger logic
 ├── src/                          # Frontend React SPA
 │   ├── components/

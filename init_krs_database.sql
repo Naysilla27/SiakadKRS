@@ -1,7 +1,8 @@
 -- =====================================================================
 -- MASTER SCRIPT: DATABASE KRS - SIAKAD UNJANI
 -- Mata Kuliah : SI611029 - Implementasi dan Pengujian Sistem Informasi
--- Sesuai ERD & Spesifikasi Pertemuan 3 (PostgreSQL)
+-- Sesuai ERD & Spesifikasi Pertemuan 3 (PostgreSQL / DBeaver)
+-- Mahasiswa   : Naysilla Sifa Aprilianissa (2450231059) & Tim
 -- =====================================================================
 
 -- 1. TABEL ATURAN AKADEMIK (Konfigurasi Batas SKS)
@@ -78,6 +79,9 @@ CREATE TABLE IF NOT EXISTS kelas (
     id_dosen INT NOT NULL,
     nama_kelas VARCHAR(5) NOT NULL,
     kuota SMALLINT NOT NULL DEFAULT 40 CHECK (kuota >= 0),
+    hari VARCHAR(20) DEFAULT 'Senin',
+    jam VARCHAR(20) DEFAULT '08:00 - 10:30',
+    ruang VARCHAR(30) DEFAULT 'R.301',
     CONSTRAINT fk_kelas_mk FOREIGN KEY (kode_mk)
         REFERENCES mata_kuliah (kode_mk)
         ON UPDATE CASCADE ON DELETE RESTRICT,
@@ -97,6 +101,7 @@ CREATE TABLE IF NOT EXISTS krs (
     id_periode VARCHAR(5) NOT NULL,
     tgl_isi DATE NOT NULL DEFAULT CURRENT_DATE,
     status VARCHAR(10) NOT NULL DEFAULT 'draft',
+    catatan_dosen TEXT DEFAULT '',
     CONSTRAINT ck_krs_status CHECK (status IN ('draft', 'diajukan', 'disetujui', 'revisi')),
     CONSTRAINT uq_krs_mahasiswa_periode UNIQUE (nim, id_periode),
     CONSTRAINT fk_krs_mahasiswa FOREIGN KEY (nim)
@@ -120,6 +125,25 @@ CREATE TABLE IF NOT EXISTS krs_detail (
         REFERENCES kelas (id_kelas)
         ON DELETE RESTRICT
 );
+
+-- 10. TABEL DEFECTS (Quality Assurance & Testing Hub - SI611029)
+CREATE TABLE IF NOT EXISTS defects (
+    id VARCHAR(20) PRIMARY KEY,
+    module VARCHAR(100) NOT NULL,
+    title VARCHAR(200) NOT NULL,
+    error_type VARCHAR(50),
+    fault TEXT,
+    defect TEXT,
+    status VARCHAR(50) DEFAULT 'Open',
+    severity VARCHAR(20) DEFAULT 'Medium',
+    created_at TIMESTAMPTZ DEFAULT now()
+);
+
+-- AUTO-MIGRATIONS (Safe Alter if tables already exist)
+ALTER TABLE kelas ADD COLUMN IF NOT EXISTS hari VARCHAR(20) DEFAULT 'Senin';
+ALTER TABLE kelas ADD COLUMN IF NOT EXISTS jam VARCHAR(20) DEFAULT '08:00 - 10:30';
+ALTER TABLE kelas ADD COLUMN IF NOT EXISTS ruang VARCHAR(30) DEFAULT 'R.301';
+ALTER TABLE krs ADD COLUMN IF NOT EXISTS catatan_dosen TEXT DEFAULT '';
 
 -- =====================================================================
 -- INDEX OPTIMASI (Sesuai Slide 20 & 21)
@@ -181,7 +205,7 @@ FOR EACH ROW
 EXECUTE FUNCTION fn_cek_maks_sks();
 
 -- =====================================================================
--- SEED DATA AWAL (Data Referensi & Contoh Nyata Sesuai Slide)
+-- SEED DATA AWAL (Data Referensi & Data Nyata Mahasiswa)
 -- =====================================================================
 
 -- Aturan Batas SKS
@@ -198,9 +222,9 @@ ON CONFLICT (kode_prodi) DO NOTHING;
 
 -- Dosen
 INSERT INTO dosen (nidn, nama, email, kode_prodi) VALUES
-('0415088001', 'Dr. Ir. Sigit Anggoro, S.T., M.T., IPM', 'sigit.anggoro@unjani.ac.id', 'SIF'),
-('0422118502', 'Irma Santikarama, S.Kom., M.T', 'irma.santikarama@unjani.ac.id', 'SIF'),
-('0410027501', 'Dra. Aisyah Rahmawati, M.T.', 'aisyah@unjani.ac.id', 'SIF')
+('0415088001', 'Dr. Ir. Sigit Anggoro, S.T., M.T., IPM', 'sigit.anggoro@lecturer.unjani.ac.id', 'SIF'),
+('0422118502', 'Irma Santikarama, S.Kom., M.T', 'irma.santikarama@lecturer.unjani.ac.id', 'SIF'),
+('0410027501', 'Dea Destiani', 'Dea.Destiani@lecturer.unjani.ac.id', 'SIF')
 ON CONFLICT (nidn) DO NOTHING;
 
 -- Periode
@@ -227,41 +251,47 @@ INSERT INTO mata_kuliah (kode_mk, nama_mk, sks, semester_ke) VALUES
 ('SI611039', 'Rekayasa Sistem Berbasis Komponen', 3, 5)
 ON CONFLICT (kode_mk) DO NOTHING;
 
--- Mahasiswa
+-- Mahasiswa (Mahasiswa Utama S1 Sistem Informasi UNJANI)
 INSERT INTO mahasiswa (nim, nama, email, tahun_masuk, status, kode_prodi, id_dosen_pa, no_hp) VALUES
-('2023900001', 'Andi Pratama', 'andi.pratama@student.unjani.ac.id', 2023, 'aktif', 'SIF', 1, '081234567890'),
-('2023900002', 'Bunga Lestari', 'bunga.lestari@student.unjani.ac.id', 2023, 'aktif', 'SIF', 2, '081298765432'),
-('2023900003', 'Citra Dewi', 'citra.dewi@student.unjani.ac.id', 2023, 'aktif', 'SIF', 1, '081377889900'),
-('2023900004', 'Dimas Saputra', 'dimas.saputra@student.unjani.ac.id', 2023, 'aktif', 'SIF', 2, '081455667788')
-ON CONFLICT (nim) DO NOTHING;
+('2450231059', 'Naysilla Sifa Aprilianissa', 'nssa.24@si.unjani.ac.id', 2024, 'aktif', 'SIF', 2, '081234567890'),
+('2450231054', 'Meila Fitri', 'mfi.24@si.unjani.ac.id', 2023, 'aktif', 'SIF', 2, '081298765432'),
+('2450231046', 'Anita Nurhayati', 'ani.24@si.unjani.ac.id', 2024, 'aktif', 'SIF', 1, '081377889900'),
+('2450231051', 'Nayla Putri Romdoni', 'npr.24@si.unjani.ac.id', 2024, 'aktif', 'SIF', 1, '081455667788')
+ON CONFLICT (nim) DO UPDATE SET
+    nama = EXCLUDED.nama,
+    email = EXCLUDED.email,
+    id_dosen_pa = EXCLUDED.id_dosen_pa;
 
--- Kelas
-INSERT INTO kelas (kode_mk, id_periode, id_dosen, nama_kelas, kuota) VALUES
-('SI611029', '20261', 1, 'SI-A', 40),
-('SI611029', '20261', 2, 'SI-B', 40),
-('SI611027', '20261', 2, 'SI-A', 40),
-('SI611028', '20261', 1, 'SI-A', 35),
-('SI611020', '20261', 3, 'SI-A', 40),
-('SI611021', '20261', 1, 'SI-A', 40),
-('SI611030', '20261', 3, 'SI-A', 45),
-('SI611031', '20261', 1, 'SI-A', 40),
-('SI611032', '20261', 2, 'SI-A', 35),
-('SI611035', '20261', 1, 'SI-A', 40),
-('SI611036', '20261', 2, 'SI-A', 40),
-('SI611037', '20261', 1, 'SI-A', 40),
-('SI611038', '20261', 3, 'SI-A', 40),
-('SI611039', '20261', 2, 'SI-A', 40)
+-- Kelas Perkuliahan (Jadwal & Ruang)
+INSERT INTO kelas (kode_mk, id_periode, id_dosen, nama_kelas, kuota, hari, jam, ruang) VALUES
+('SI611029', '20261', 1, 'SI-A', 40, 'Senin', '08:00 - 10:30', 'R.301'),
+('SI611029', '20261', 2, 'SI-B', 40, 'Selasa', '13:00 - 15:30', 'R.302'),
+('SI611027', '20261', 2, 'SI-A', 40, 'Rabu', '08:00 - 10:30', 'R.301'),
+('SI611028', '20261', 1, 'SI-A', 35, 'Kamis', '10:30 - 12:10', 'R.204'),
+('SI611020', '20261', 3, 'SI-A', 40, 'Jumat', '08:00 - 10:30', 'Lab. Komputer 2'),
+('SI611021', '20261', 1, 'SI-A', 40, 'Selasa', '08:00 - 10:30', 'Lab. Web'),
+('SI611030', '20261', 3, 'SI-A', 45, 'Rabu', '13:00 - 14:40', 'R.105'),
+('SI611031', '20261', 1, 'SI-A', 40, 'Kamis', '13:00 - 15:30', 'R.301'),
+('SI611032', '20261', 2, 'SI-A', 35, 'Jumat', '13:30 - 16:00', 'Lab. Data'),
+('SI611035', '20261', 1, 'SI-A', 40, 'Rabu', '10:30 - 13:00', 'R.302'),
+('SI611036', '20261', 2, 'SI-A', 40, 'Kamis', '08:00 - 10:30', 'Lab. Cloud'),
+('SI611037', '20261', 1, 'SI-A', 40, 'Jumat', '09:00 - 11:30', 'R.205'),
+('SI611038', '20261', 3, 'SI-A', 40, 'Senin', '13:00 - 15:30', 'R.201'),
+('SI611039', '20261', 2, 'SI-A', 40, 'Selasa', '10:30 - 13:00', 'R.202')
 ON CONFLICT (kode_mk, id_periode, nama_kelas) DO NOTHING;
 
 -- KRS Mahasiswa
-INSERT INTO krs (nim, id_periode, tgl_isi, status) VALUES
-('2023900001', '20261', '2026-09-02', 'disetujui'),
-('2023900002', '20261', '2026-09-03', 'diajukan'),
-('2023900004', '20261', '2026-09-04', 'draft')
-ON CONFLICT (nim, id_periode) DO NOTHING;
+INSERT INTO krs (nim, id_periode, tgl_isi, status, catatan_dosen) VALUES
+('2450231059', '20261', '2026-10-20', 'disetujui', 'Acc Silahkan Cek Jadwal yang Sudah Ada'),
+('2450231054', '20261', '2026-10-21', 'diajukan', 'Menunggu review Dosen PA.'),
+('2450231046', '20261', '2026-10-22', 'draft', ''),
+('2450231051', '20261', '2026-10-23', 'draft', '')
+ON CONFLICT (nim, id_periode) DO UPDATE SET
+    status = EXCLUDED.status,
+    catatan_dosen = EXCLUDED.catatan_dosen;
 
--- KRS Detail (Mata kuliah yang diambil)
--- Andi Pratama (id_krs 1): Mengambil 4 MK (total 11/12 SKS)
+-- KRS Detail (Mata Kuliah yang Diambil Mahasiswa)
+-- Naysilla Sifa Aprilianissa (id_krs 1): Mengambil 4 MK
 INSERT INTO krs_detail (id_krs, id_kelas) VALUES
 (1, 1), -- SI611029 (3 SKS)
 (1, 3), -- SI611027 (3 SKS)
@@ -269,15 +299,15 @@ INSERT INTO krs_detail (id_krs, id_kelas) VALUES
 (1, 6)  -- SI611021 (3 SKS)
 ON CONFLICT (id_krs, id_kelas) DO NOTHING;
 
--- Bunga Lestari (id_krs 2): Mengambil 3 MK (8 SKS)
+-- Meila Fitri (id_krs 2): Mengambil 3 MK (8 SKS)
 INSERT INTO krs_detail (id_krs, id_kelas) VALUES
 (2, 2), -- SI611029 (3 SKS)
 (2, 3), -- SI611027 (3 SKS)
 (2, 4)  -- SI611028 (2 SKS)
 ON CONFLICT (id_krs, id_kelas) DO NOTHING;
 
--- Dimas Saputra (id_krs 3): Mengambil 2 MK (6 SKS)
-INSERT INTO krs_detail (id_krs, id_kelas) VALUES
-(3, 1), -- SI611029 (3 SKS)
-(3, 3)  -- SI611027 (3 SKS)
-ON CONFLICT (id_krs, id_kelas) DO NOTHING;
+-- Defect Tracking Seed (Quality Hub - Slide 16)
+INSERT INTO defects (id, module, title, error_type, fault, defect, status, severity) VALUES
+('DEF-001', 'Validasi KRS', 'Sistem menolak KRS dengan 25 SKS (Trigger Test)', 'Human Error', 'Kondisi program batas SKS', 'Total SKS 25 melebihi batas 24', 'Verified Fixed', 'Critical'),
+('DEF-002', 'Autentikasi', 'Validasi password sesuai spesifikasi', 'Fault', 'Password length check', 'Password < 8 karakter', 'Closed', 'Medium')
+ON CONFLICT (id) DO NOTHING;
