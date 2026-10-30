@@ -267,8 +267,25 @@ Bagi rekan kelompok atau penguji yang ingin menghubungkan langsung ke PostgreSQL
 
 ---
 
-## 👥 9. Tim Pengembang & Identitas Akademik
+## 👥 9. Tim Pengembang, Pembagian Peran, & Identitas Akademik
+
+Aplikasi SiakadKRS dikembangkan secara kolaboratif oleh tim mahasiswa Program Studi S1 Sistem Informasi, Fakultas Sains dan Informatika, Universitas Jenderal Achmad Yani (UNJANI) untuk mata kuliah **SI611029 — Implementasi dan Pengujian Sistem Informasi**:
+
+### 📌 Matriks Pembagian Peran & Tanggung Jawab Tim
+
+| No | Nama Lengkap | NIM | Peran (*Role*) | Bidang Tanggung Jawab & Implementasi | Teknologi & Bahasa |
+|:--:|:---|:---:|:---|:---|:---|
+| 1 | **Naysilla Sifa Aprilianissa** | `2450231059` | **Backend Developer** | Server REST API (Port 5005), 16+ Endpoint, Middleware CORS, Database Connection Pool, Validasi Aturan Bisnis Server-side | JavaScript, Node.js, Express.js, `pg` Pool |
+| 2 | **Nayla Putri Romdoni** | `2450231051` | **Frontend Developer** | Desain Antarmuka Reaktif (SPA), State Management, Role Switcher (4 Peran), Visualisasi Jadwal Mingguan, & Cetak KRS A4 Resmi | JavaScript (ES6+), React 18, Tailwind CSS, Vite |
+| 3 | **Anita Nurhayati** | `2450231046` | **Database Administrator (DBA)** | Perancangan Skema Relasional 9 Tabel (3NF), Integritas Data, Foreign Key Cascading, & Trigger Stored Procedure `fn_cek_maks_sks()` | SQL, PL/pgSQL, PostgreSQL 17, DBeaver, pgAdmin 4 |
+| 4 | **Meila Fitri** | `2450231054` | **Quality Assurance (QA / Tester)** | Eksekusi 4-Level Testing (Unit, Integration, System, UAT), Pengujian Boundary SKS (Error Code 23514), & Pelacakan Siklus Defect | Python, Postman, Quality Hub, Manual/Auto Testing |
+
+> 📖 **Dokumentasi Lengkap, Berkas Kepemilikan, & Panduan Sidang/Presentasi**:  
+> Silakan baca panduan resmi tim dan jawaban pertanyaan dosen di:  
+> 👉 **[`docs/PEMBAGIAN_PERAN_DAN_TUGAS.md`](docs/PEMBAGIAN_PERAN_DAN_TUGAS.md)**
+
 * **Program Studi**: S1 Sistem Informasi — Fakultas Sains dan Informatika
 * **Universitas**: Universitas Jenderal Achmad Yani (UNJANI), Cimahi
+* **Dosen Pengampu**: Dr. Ir. Sigit Anggoro, S.T., M.T., IPM & Irma Santikarama, S.Kom., M.T
 * **Mata Kuliah**: SI611029 Implementasi dan Pengujian Sistem Informasi
 * **Tahun Akademik**: Semester Ganjil 2026/2027
