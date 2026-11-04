@@ -89,12 +89,16 @@ export default function AdminPage({
       } else {
         let errMessage = 'Terjadi kesalahan saat menghapus data';
         try {
-          const data = await res.json();
-          errMessage = data.error || data.detail || errMessage;
-        } catch {
           const text = await res.text();
-          if (text) errMessage = text;
-        }
+          if (text) {
+            try {
+              const data = JSON.parse(text);
+              errMessage = data.error || data.detail || errMessage;
+            } catch {
+              errMessage = text;
+            }
+          }
+        } catch {}
         onNotify({ type: 'error', title: 'Gagal Hapus', message: errMessage });
       }
     } catch (err) {
@@ -134,12 +138,16 @@ export default function AdminPage({
       } else {
         let errMessage = 'Terjadi kesalahan saat menyimpan data';
         try {
-          const data = await res.json();
-          errMessage = data.error || data.detail || errMessage;
-        } catch {
           const text = await res.text();
-          if (text) errMessage = text;
-        }
+          if (text) {
+            try {
+              const data = JSON.parse(text);
+              errMessage = data.error || data.detail || errMessage;
+            } catch {
+              errMessage = text;
+            }
+          }
+        } catch {}
         onNotify({ type: 'error', title: 'Gagal Simpan', message: errMessage });
       }
     } catch (err) {

@@ -170,7 +170,14 @@ app.post('/api/mahasiswa', async (req, res) => {
              'belum_isi' as status_krs,
              0 as id_krs,
              0 as total_sks,
-             24 as max_sks
+             COALESCE(m.ips_lalu, 3.50)::numeric as ips_lalu,
+             CASE
+               WHEN COALESCE(m.ips_lalu, 3.50) >= 3.00 THEN 24
+               WHEN COALESCE(m.ips_lalu, 3.50) >= 2.50 THEN 21
+               WHEN COALESCE(m.ips_lalu, 3.50) >= 2.00 THEN 18
+               WHEN COALESCE(m.ips_lalu, 3.50) >= 1.50 THEN 15
+               ELSE 12
+             END as max_sks
       FROM mahasiswa m
       LEFT JOIN prodi p ON p.kode_prodi = m.kode_prodi
       LEFT JOIN dosen d ON d.id_dosen = m.id_dosen_pa
@@ -199,24 +206,24 @@ app.put('/api/mahasiswa/:nim', async (req, res) => {
     const updateQ = `
       UPDATE mahasiswa
       SET nama = COALESCE($1, nama),
-          email = $2,
+          email = COALESCE($2, email),
           tahun_masuk = COALESCE($3, tahun_masuk),
           status = COALESCE($4, status),
           kode_prodi = COALESCE($5, kode_prodi),
-          id_dosen_pa = $6,
-          no_hp = $7,
+          id_dosen_pa = COALESCE($6, id_dosen_pa),
+          no_hp = COALESCE($7, no_hp),
           ips_lalu = COALESCE($8, ips_lalu)
       WHERE nim = $9
       RETURNING *
     `;
     const values = [
       nama || null,
-      email !== undefined ? email : null,
+      email || null,
       tahun_masuk ? Number(tahun_masuk) : null,
       status || null,
       kode_prodi || null,
       id_dosen_pa ? Number(id_dosen_pa) : null,
-      no_hp !== undefined ? no_hp : null,
+      no_hp || null,
       ips_lalu !== undefined && ips_lalu !== null && ips_lalu !== '' ? Number(ips_lalu) : null,
       nim
     ];
@@ -233,7 +240,14 @@ app.put('/api/mahasiswa/:nim', async (req, res) => {
              COALESCE(k.status, 'belum_isi') as status_krs,
              COALESCE(k.id_krs, 0)::int as id_krs,
              COALESCE(SUM(mk.sks), 0)::int as total_sks,
-             24 as max_sks
+             COALESCE(m.ips_lalu, 3.50)::numeric as ips_lalu,
+             CASE
+               WHEN COALESCE(m.ips_lalu, 3.50) >= 3.00 THEN 24
+               WHEN COALESCE(m.ips_lalu, 3.50) >= 2.50 THEN 21
+               WHEN COALESCE(m.ips_lalu, 3.50) >= 2.00 THEN 18
+               WHEN COALESCE(m.ips_lalu, 3.50) >= 1.50 THEN 15
+               ELSE 12
+             END as max_sks
       FROM mahasiswa m
       LEFT JOIN prodi p ON p.kode_prodi = m.kode_prodi
       LEFT JOIN dosen d ON d.id_dosen = m.id_dosen_pa
@@ -242,7 +256,7 @@ app.put('/api/mahasiswa/:nim', async (req, res) => {
       LEFT JOIN kelas kl ON kl.id_kelas = kd.id_kelas
       LEFT JOIN mata_kuliah mk ON mk.kode_mk = kl.kode_mk
       WHERE m.nim = $1
-      GROUP BY m.nim, m.nama, m.email, m.tahun_masuk, m.status, m.kode_prodi, m.id_dosen_pa, m.no_hp, p.nama_prodi, d.nama, k.status, k.id_krs
+      GROUP BY m.nim, m.nama, m.email, m.tahun_masuk, m.status, m.kode_prodi, m.id_dosen_pa, m.no_hp, m.ips_lalu, p.nama_prodi, d.nama, k.status, k.id_krs
     `, [nim]);
 
     res.json(enrichedRes.rows[0]);
