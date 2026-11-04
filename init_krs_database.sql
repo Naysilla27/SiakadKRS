@@ -58,6 +58,7 @@ CREATE TABLE IF NOT EXISTS mahasiswa (
     id_dosen_pa INT,
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     no_hp VARCHAR(20),
+    ips_lalu NUMERIC(3,2) DEFAULT 3.50,
     CONSTRAINT uq_mahasiswa_email UNIQUE (email),
     CONSTRAINT ck_mahasiswa_nim CHECK (nim ~ '^[0-9]{8,12}$'),
     CONSTRAINT ck_mahasiswa_tahun CHECK (tahun_masuk BETWEEN 2000 AND 2100),
@@ -154,23 +155,40 @@ CREATE INDEX IF NOT EXISTS idx_kelas_mk ON kelas (kode_mk);
 CREATE INDEX IF NOT EXISTS idx_krs_detail_kelas ON krs_detail (id_kelas);
 
 -- =====================================================================
--- TRIGGER ATURAN BISNIS: BATAS MAKSIMUM SKS (Sesuai Slide 15)
+-- TRIGGER ATURAN BISNIS: BATAS MAKSIMUM SKS DINAMIS SESUAI IP SEMESTER
+-- Tabel Beban SKS:
+--   0,00 - 1,49 : 12 SKS
+--   1,50 - 1,99 : 15 SKS
+--   2,00 - 2,49 : 18 SKS
+--   2,50 - 2,99 : 21 SKS
+--   3,00 - 4,00 : 24 SKS
 -- =====================================================================
 CREATE OR REPLACE FUNCTION fn_cek_maks_sks()
-RETURNS TRIGGER AS $$
+RETURNS TRIGGER AS 
 DECLARE
+    v_nim VARCHAR(12);
+    v_ips NUMERIC(3,2);
+    v_maks INT;
     v_total INT;
     v_sks INT;
-    v_maks INT;
 BEGIN
-    -- Ambil batas SKS dari tabel konfigurasi aturan_akademik
-    SELECT nilai INTO v_maks
-    FROM aturan_akademik
-    WHERE kode = 'maks_sks';
+    -- Ambil NIM mahasiswa dari KRS
+    SELECT nim INTO v_nim FROM krs WHERE id_krs = NEW.id_krs;
 
-    -- Bila belum disetting, default ke 24 SKS
-    IF v_maks IS NULL THEN
+    -- Ambil IP Semester lalu dari mahasiswa
+    SELECT COALESCE(ips_lalu, 3.00) INTO v_ips FROM mahasiswa WHERE nim = v_nim;
+
+    -- Tentukan batas SKS berdasarkan aturan IP Semester
+    IF v_ips >= 3.00 THEN
         v_maks := 24;
+    ELSIF v_ips >= 2.50 THEN
+        v_maks := 21;
+    ELSIF v_ips >= 2.00 THEN
+        v_maks := 18;
+    ELSIF v_ips >= 1.50 THEN
+        v_maks := 15;
+    ELSE
+        v_maks := 12;
     END IF;
 
     -- Hitung SKS mata kuliah yang hendak ditambahkan
@@ -187,15 +205,15 @@ BEGIN
     WHERE kd.id_krs = NEW.id_krs
       AND kd.id_kelas <> NEW.id_kelas;
 
-    -- Validasi apakah melebihi batas SKS
+    -- Validasi apakah melebihi batas SKS mahasiswa
     IF (v_total + v_sks) > v_maks THEN
-        RAISE EXCEPTION 'Total SKS % melebihi batas % SKS', (v_total + v_sks), v_maks
+        RAISE EXCEPTION 'Total SKS % melebihi batas % SKS (IP Semester: %)', (v_total + v_sks), v_maks, v_ips
         USING ERRCODE = '23514'; -- check_violation
     END IF;
 
     RETURN NEW;
 END;
-$$ LANGUAGE plpgsql;
+ LANGUAGE plpgsql;
 
 DROP TRIGGER IF EXISTS trg_krs_detail_maks_sks ON krs_detail;
 CREATE TRIGGER trg_krs_detail_maks_sks

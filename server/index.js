@@ -21,10 +21,12 @@ app.use((req, res, next) => {
 
 // Helper: Calculate SKS limit based on IPS (Slide 9 & 14)
 export function calculateMaxSks(ips) {
-  if (ips >= 3.00) return 24;
-  if (ips >= 2.50) return 21;
-  if (ips >= 2.00) return 18;
-  return 15;
+  const val = Number(ips) || 0;
+  if (val >= 3.00) return 24;
+  if (val >= 2.50) return 21;
+  if (val >= 2.00) return 18;
+  if (val >= 1.50) return 15;
+  return 12;
 }
 
 // -------------------------------------------------------------
@@ -77,7 +79,14 @@ app.get('/api/mahasiswa', async (req, res) => {
              COALESCE(k.id_krs, 0)::int as id_krs,
              COALESCE(SUM(mk.sks), 0)::int as total_sks,
              COALESCE(k.catatan_dosen, '') as catatan_dosen,
-             24 as max_sks
+             COALESCE(m.ips_lalu, 3.50)::numeric as ips_lalu,
+             CASE
+               WHEN COALESCE(m.ips_lalu, 3.50) >= 3.00 THEN 24
+               WHEN COALESCE(m.ips_lalu, 3.50) >= 2.50 THEN 21
+               WHEN COALESCE(m.ips_lalu, 3.50) >= 2.00 THEN 18
+               WHEN COALESCE(m.ips_lalu, 3.50) >= 1.50 THEN 15
+               ELSE 12
+             END as max_sks
       FROM mahasiswa m
       LEFT JOIN prodi p ON p.kode_prodi = m.kode_prodi
       LEFT JOIN dosen d ON d.id_dosen = m.id_dosen_pa
@@ -85,7 +94,7 @@ app.get('/api/mahasiswa', async (req, res) => {
       LEFT JOIN krs_detail kd ON kd.id_krs = k.id_krs
       LEFT JOIN kelas kl ON kl.id_kelas = kd.id_kelas
       LEFT JOIN mata_kuliah mk ON mk.kode_mk = kl.kode_mk
-      GROUP BY m.nim, m.nama, m.email, m.tahun_masuk, m.status, m.kode_prodi, m.id_dosen_pa, m.no_hp, p.nama_prodi, d.nama, k.status, k.id_krs, k.catatan_dosen
+      GROUP BY m.nim, m.nama, m.email, m.tahun_masuk, m.status, m.kode_prodi, m.id_dosen_pa, m.no_hp, m.ips_lalu, p.nama_prodi, d.nama, k.status, k.id_krs, k.catatan_dosen
       ORDER BY m.nim ASC
     `;
     const result = await query(q);
@@ -105,7 +114,14 @@ app.get('/api/mahasiswa/:nim', async (req, res) => {
              COALESCE(p.nama_prodi, m.kode_prodi) as nama_prodi,
              COALESCE(d.nama, 'Belum Ditentukan') as nama_dosen_pa,
              COALESCE(d.email, '') as email_dosen_pa,
-             24 as max_sks
+             COALESCE(m.ips_lalu, 3.50)::numeric as ips_lalu,
+             CASE
+               WHEN COALESCE(m.ips_lalu, 3.50) >= 3.00 THEN 24
+               WHEN COALESCE(m.ips_lalu, 3.50) >= 2.50 THEN 21
+               WHEN COALESCE(m.ips_lalu, 3.50) >= 2.00 THEN 18
+               WHEN COALESCE(m.ips_lalu, 3.50) >= 1.50 THEN 15
+               ELSE 12
+             END as max_sks
       FROM mahasiswa m
       LEFT JOIN prodi p ON p.kode_prodi = m.kode_prodi
       LEFT JOIN dosen d ON d.id_dosen = m.id_dosen_pa
@@ -124,13 +140,13 @@ app.get('/api/mahasiswa/:nim', async (req, res) => {
 
 // Create Mahasiswa
 app.post('/api/mahasiswa', async (req, res) => {
-  const { nim, nama, email, tahun_masuk, status, kode_prodi, id_dosen_pa, no_hp } = req.body;
+  const { nim, nama, email, tahun_masuk, status, kode_prodi, id_dosen_pa, no_hp, ips_lalu } = req.body;
   if (!nim || !nama) return res.status(400).json({ error: 'NIM dan Nama wajib diisi' });
 
   try {
     const insertQ = `
-      INSERT INTO mahasiswa (nim, nama, email, tahun_masuk, status, kode_prodi, id_dosen_pa, no_hp)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+      INSERT INTO mahasiswa (nim, nama, email, tahun_masuk, status, kode_prodi, id_dosen_pa, no_hp, ips_lalu)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
       RETURNING *
     `;
     const values = [
@@ -141,7 +157,8 @@ app.post('/api/mahasiswa', async (req, res) => {
       status || 'aktif',
       kode_prodi || 'SIF',
       id_dosen_pa ? Number(id_dosen_pa) : null,
-      no_hp || null
+      no_hp || null,
+      ips_lalu !== undefined && ips_lalu !== null && ips_lalu !== '' ? Number(ips_lalu) : 3.50
     ];
     await query(insertQ, values);
 
@@ -176,7 +193,7 @@ app.post('/api/mahasiswa', async (req, res) => {
 // Update Mahasiswa
 app.put('/api/mahasiswa/:nim', async (req, res) => {
   const { nim } = req.params;
-  const { nama, email, tahun_masuk, status, kode_prodi, id_dosen_pa, no_hp } = req.body;
+  const { nama, email, tahun_masuk, status, kode_prodi, id_dosen_pa, no_hp, ips_lalu } = req.body;
 
   try {
     const updateQ = `
@@ -187,8 +204,9 @@ app.put('/api/mahasiswa/:nim', async (req, res) => {
           status = COALESCE($4, status),
           kode_prodi = COALESCE($5, kode_prodi),
           id_dosen_pa = $6,
-          no_hp = $7
-      WHERE nim = $8
+          no_hp = $7,
+          ips_lalu = COALESCE($8, ips_lalu)
+      WHERE nim = $9
       RETURNING *
     `;
     const values = [
@@ -199,6 +217,7 @@ app.put('/api/mahasiswa/:nim', async (req, res) => {
       kode_prodi || null,
       id_dosen_pa ? Number(id_dosen_pa) : null,
       no_hp !== undefined ? no_hp : null,
+      ips_lalu !== undefined && ips_lalu !== null && ips_lalu !== '' ? Number(ips_lalu) : null,
       nim
     ];
     const updateRes = await query(updateQ, values);
@@ -515,8 +534,9 @@ app.get('/api/krs/:nim', async (req, res) => {
     });
 
     // 3. Get max SKS rule from database
-    const aturanRes = await query(`SELECT nilai FROM aturan_akademik WHERE kode = 'maks_sks'`);
-    const max_sks = aturanRes.rows[0]?.nilai || 24;
+    const mhsRes = await query(`SELECT COALESCE(ips_lalu, 3.50)::numeric as ips_lalu FROM mahasiswa WHERE nim = $1`, [nim]);
+    const ipsVal = mhsRes.rows[0]?.ips_lalu || 3.50;
+    const max_sks = calculateMaxSks(ipsVal);
 
     res.json({
       krs: krsRecord,

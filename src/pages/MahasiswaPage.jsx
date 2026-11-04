@@ -86,8 +86,16 @@ export default function MahasiswaPage({
                 <h1 className="text-xl sm:text-2xl font-black tracking-tight">{student.nama}</h1>
                 {getStatusBadge(krs.status)}
               </div>
-              <p className="text-xs text-emerald-200 mt-1 font-mono">
-                NIM: {student.nim} • Prodi: {student.nama_prodi || 'Sistem Informasi'} • Angkatan {student.tahun_masuk || 2023}
+              <p className="text-xs text-emerald-200 mt-1 font-mono flex items-center gap-2 flex-wrap">
+                <span>NIM: {student.nim}</span>
+                <span>•</span>
+                <span>Prodi: {student.nama_prodi || 'Sistem Informasi'}</span>
+                <span>•</span>
+                <span>Angkatan {student.tahun_masuk || 2023}</span>
+                <span>•</span>
+                <span className="bg-white/15 px-2 py-0.5 rounded-md text-amber-300 font-bold border border-white/20">
+                  IP Semester: {Number(student.ips_lalu || 3.50).toFixed(2)} (Batas: {maxSks} SKS)
+                </span>
               </p>
               <div className="flex items-center gap-2 text-xs text-emerald-100/80 mt-1.5">
                 <User className="w-3.5 h-3.5 text-amber-400" />

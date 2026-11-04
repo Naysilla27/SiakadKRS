@@ -45,7 +45,8 @@ export default function AdminPage({
         status: 'aktif',
         kode_prodi: 'SIF',
         id_dosen_pa: dosenList[0]?.id_dosen || 1,
-        no_hp: ''
+        no_hp: '',
+        ips_lalu: 3.50
       });
     } else if (activeTab === 'dosen') {
       setFormData({
@@ -248,6 +249,7 @@ export default function AdminPage({
                 <th className="p-3.5">Email & Kontak</th>
                 <th className="p-3.5">Prodi & Angkatan</th>
                 <th className="p-3.5">Dosen Wali</th>
+                <th className="p-3.5 text-center">IP & Batas SKS</th>
                 <th className="p-3.5 text-center">Status KRS</th>
                 <th className="p-3.5 text-right">Aksi</th>
               </tr>
@@ -267,6 +269,14 @@ export default function AdminPage({
                       {m.nama_prodi || m.kode_prodi} ({m.tahun_masuk})
                     </td>
                     <td className="p-3.5 text-slate-600 dark:text-slate-400">{m.nama_dosen_pa || '-'}</td>
+                    <td className="p-3.5 text-center">
+                      <span className="font-bold text-slate-800 dark:text-slate-200">
+                        {Number(m.ips_lalu !== undefined ? m.ips_lalu : 3.50).toFixed(2)}
+                      </span>
+                      <span className="block text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold">
+                        Maks {m.max_sks || 24} SKS
+                      </span>
+                    </td>
                     <td className="p-3.5 text-center">
                       <span className="px-2 py-0.5 bg-slate-100 dark:bg-slate-800 rounded font-medium text-[11px] uppercase">
                         {m.status_krs || 'draft'}
@@ -504,6 +514,22 @@ export default function AdminPage({
                         ))}
                       </select>
                     </div>
+                  </div>
+                  <div>
+                    <label className="block font-bold mb-1">IP Semester Lalu (0.00 - 4.00):</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      max="4"
+                      value={formData.ips_lalu !== undefined && formData.ips_lalu !== null ? formData.ips_lalu : 3.50}
+                      onChange={(e) => setFormData({ ...formData, ips_lalu: e.target.value })}
+                      className="w-full p-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl"
+                      placeholder="Contoh: 2.25 atau 3.50"
+                    />
+                    <span className="text-[10px] text-slate-400 block mt-1">
+                      Beban Maksimal: &ge;3.00 (24 SKS), 2.50-2.99 (21 SKS), 2.00-2.49 (18 SKS), 1.50-1.99 (15 SKS), &lt;1.50 (12 SKS)
+                    </span>
                   </div>
                 </>
               )}
