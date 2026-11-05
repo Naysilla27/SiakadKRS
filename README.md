@@ -324,3 +324,80 @@ run_test_crud.bat
 | **CRUD-D03** | DELETE | **Meila Fitri (QA / Tester)** | Integritas Relasi ON DELETE RESTRICT | Tolak hapus Prodi SIF (Error 23001) | ✅ PASS |
 | **CRUD-D04** | DELETE | **Meila Fitri (QA / Tester)** | Sanitasi Database (Cleanup Data Uji) | Database bersih ke state semula | ✅ PASS |
 
+---
+
+## 🚀 11. Stress Testing 1.000 Data CSV & Diagnosis Performa (Nomor 2 & 3)
+
+Sesuai instruksi lanjutan tugas P5:
+1. **Pembuatan Dataset 1.000 Data CSV** dengan AI, diperkaya atribut **IPK (`ips_lalu`)** dan **Beban Maksimum SKS** dinamis.
+2. **Pembagian Berimbang 4 Kontributor** (@ 250 baris data per anggota kelompok).
+3. **Stress Testing ke Database PostgreSQL** membandingkan metode naif (sekuensial N+1) vs metode batch teroptimasi.
+4. **Diagnosis Mendalam**: Membedah apakah masalah performa terletak pada **Kode Program KRS** atau **Setting Database**.
+
+```bash
+# Menjalankan Stress Testing 1.000 Data:
+npm run test:stress
+# atau (Windows Batch)
+run_test_stress.bat
+```
+
+### 📁 Pembagian Kontribusi Dataset 1.000 Baris CSV
+
+Dataset disimpan pada [`data/1000_mahasiswa_stress_test.csv`](data/1000_mahasiswa_stress_test.csv) dengan alokasi berimbang:
+
+| No | Anggota Kelompok | NIM | Peran Tim | Rentang Baris | Rentang NIM | Jumlah Baris |
+|:---:|:---|:---:|:---|:---:|:---:|:---:|
+| 1 | **Anita Nurhayati** | `2450231046` | Database Administrator (DBA) | Baris 001 – 250 | `2450234001` – `2450234250` | 250 Baris |
+| 2 | **Naysilla Sifa Aprilianissa** | `2450231059` | Backend Developer | Baris 251 – 500 | `2450234251` – `2450234500` | 250 Baris |
+| 3 | **Nayla Putri Romdoni** | `2450231051` | Frontend Developer | Baris 501 – 750 | `2450234501` – `2450234750` | 250 Baris |
+| 4 | **Meila Fitri** | `2450231054` | Quality Assurance (QA / Tester) | Baris 751 – 1000 | `2450234751` – `2450235000` | 250 Baris |
+
+### 📈 Distribusi IPK dan Validasi Aturan Beban SKS Dinamis
+
+Berdasarkan aturan akademik di slide perkuliahan (*0,00–1,49: 12 SKS, 1,50–1,99: 15 SKS, 2,00–2,49: 18 SKS, 2,50–2,99: 21 SKS, 3,00–4,00: 24 SKS*):
+
+| Tier Beban SKS | Rentang IPK | Jatah Maks SKS | Jumlah Data | Persentase | Status Trigger Database |
+|:---|:---:|:---:|:---:|:---:|:---:|
+| **Tier 1 (Sangat Baik)** | `3.00 - 4.00` | **24 SKS** | 500 Mahasiswa | 50.0% | ✅ Valid (`fn_cek_maks_sks`) |
+| **Tier 2 (Baik)** | `2.50 - 2.99` | **21 SKS** | 250 Mahasiswa | 25.0% | ✅ Valid (`fn_cek_maks_sks`) |
+| **Tier 3 (Cukup)** | `2.00 - 2.49` | **18 SKS** | 150 Mahasiswa | 15.0% | ✅ Valid (`fn_cek_maks_sks`) |
+| **Tier 4 (Kurang)** | `1.50 - 1.99` | **15 SKS** | 60 Mahasiswa | 6.0% | ✅ Valid (`fn_cek_maks_sks`) |
+| **Tier 5 (Kritis)** | `0.00 - 1.49` | **12 SKS** | 40 Mahasiswa | 4.0% | ✅ Valid (`fn_cek_maks_sks`) |
+| **TOTAL** | — | — | **1.000 Mahasiswa** | **100.0%** | **100% Sesuai Aturan Bisnis** |
+
+---
+
+### ⚡ Hasil Benchmark Stress Testing (Sebelum vs Sesudah Refactoring)
+
+```
+================================================================================
+  HASIL BENCHMARK STRESS TESTING 1.000 DATA (POSTGRESQL 17)
+================================================================================
+1. Metode Naif (Sequential N+1 Single-Row):
+   - Waktu 100 baris   : 169.99 ms (Rata-rata 1.70 ms/row, P95 2.23 ms)
+   - Throughput        : 588.3 rows/sec
+   - Estimasi 1.000 row: 1.70 detik
+
+2. Metode Refactoring (Batch Multi-Row + Transaction):
+   - Waktu 1.000 baris : 118.08 ms (Rata-rata 0.12 ms/row)
+   - Throughput        : 8,469.1 rows/sec
+   - Akselerasi        : 🚀 14.4x LIPAT LEBIH CEPAT!
+
+3. Concurrency Stress (30 User Konkuren Serentak):
+   - Total waktu       : 385.04 ms (Rata-rata 194.37 ms per user)
+   - Antrian Pool      : 0 waiting (Tertangani oleh Pool max=20)
+================================================================================
+```
+
+---
+
+### 🔍 Analisis Masalah: Kode Program KRS vs Setting Database
+
+| Aspek Analisis | 💻 Masalah di Kode Program KRS | 🗄️ Masalah di Setting Database PostgreSQL |
+|:---|:---|:---|
+| **Penyebab Utama (Root Cause)** | **Pola N+1 Iterative Query**: Aplikasi melakukan `INSERT` berulang kali dalam perulangan `for` tanpa batching, memicu 1.000 kali roundtrip koneksi TCP. | **Overhead Transaksi Otomatis (Auto-Commit Fsync)**: Tanpa transaksi terpadu, PostgreSQL memicu operasi I/O flush disk di setiap baris. |
+| **Masalah Konkurensi** | **Connection Leak & Pool Starvation**: Tidak melepaskan koneksi (`client.release()`) dengan blok `finally`, menyebabkan request baru menggantung (*hung*). | **Limit Connection Pool Default**: Setting default pool (`max: 10`) menyebabkan antrian panjang saat ratusan mahasiswa mengakses KRS serentak di hari pertama perwalian. |
+| **Masalah Aturan Bisnis** | **Pengecekan Logika di Controller**: Jika batas SKS dihitung di JavaScript backend, data inkonsisten bisa tembus bila ada bypass API. | **Overhead Row-Level Trigger**: Trigger `fn_cek_maks_sks()` menjalankan sub-SELECT ke tabel `krs` dan `mahasiswa` di setiap insert rincian mata kuliah. |
+| **Solusi Refactoring** | 1. Gunakan **Batch Multi-Row Insert** (`INSERT INTO ... VALUES (...), (...)`).<br>2. Bungkus dalam blok **Transaction** (`BEGIN ... COMMIT`).<br>3. Pastikan `try/finally` untuk selalu melepaskan client pool. | 1. Optimasi Connection Pool (`max: 20-30`).<br>2. Pertahankan B-Tree Index pada `mahasiswa(nama)` dan `mahasiswa(kode_prodi)`.<br>3. Konfigurasi `shared_buffers` dan pertimbangkan `synchronous_commit = off` saat migrasi data masal. |
+
+
