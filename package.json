@@ -9,7 +9,8 @@
     "build": "vite build",
     "preview": "vite preview",
     "dev": "concurrently \"node server/index.js\" \"vite\"",
-    "start": "node server/index.js"
+    "start": "node server/index.js",
+    "test:crud": "node tests/crud/runner.js"
   },
   "dependencies": {
     "cors": "^2.8.5",
