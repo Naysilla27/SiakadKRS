@@ -289,3 +289,38 @@ Aplikasi SiakadKRS dikembangkan secara kolaboratif oleh tim mahasiswa Program St
 * **Dosen Pengampu**: Dr. Ir. Sigit Anggoro, S.T., M.T., IPM & Irma Santikarama, S.Kom., M.T
 * **Mata Kuliah**: SI611029 Implementasi dan Pengujian Sistem Informasi
 * **Tahun Akademik**: Semester Ganjil 2026/2027
+
+---
+
+## 🧪 10. Pengujian Otomatis CRUD Database (Tugas P5 — 4 Kontributor)
+
+Sesuai instruksi **Tugas Pertemuan 5 (P5)** dari Dosen Pengampu **Dr. Ir. Sigit Anggoro, S.T., M.T., IPM**, modul pengujian otomatis CRUD ke database telah diimplementasikan secara terisolasi dan dibagi rata ke 4 anggota kelompok:
+
+```bash
+# Cara menjalankan suite pengujian CRUD:
+npm run test:crud
+# atau (Windows Batch)
+run_test_crud.bat
+```
+
+### 📊 Rekapitulasi 16 Skenario Pengujian CRUD (100% Lulus)
+
+| ID Uji | Operasi | Penanggung Jawab | Target Pengujian | Ekspektasi | Status |
+|:---:|:---:|:---|:---|:---|:---:|
+| **CRUD-C01** | CREATE | **Anita Nurhayati (DBA)** | Insert Mahasiswa Baru Valid | Disimpan ke DB PostgreSQL | ✅ PASS |
+| **CRUD-C02** | CREATE | **Anita Nurhayati (DBA)** | Cegah Duplikasi NIM Mahasiswa | Ditolak DB Error 23505 (Unique PK) | ✅ PASS |
+| **CRUD-C03** | CREATE | **Anita Nurhayati (DBA)** | Wajib Isi Kolom Nama | Ditolak DB Error 23502 (NOT NULL) | ✅ PASS |
+| **CRUD-C04** | CREATE | **Anita Nurhayati (DBA)** | Validasi Kode Prodi Terdaftar | Ditolak DB Error 23503 (Foreign Key) | ✅ PASS |
+| **CRUD-R01** | READ | **Naysilla Sifa A. (Backend)** | Baca Profil Mahasiswa by Primary Key | Ditemukan 1 baris tepat | ✅ PASS |
+| **CRUD-R02** | READ | **Naysilla Sifa A. (Backend)** | Multi-Table JOIN (Prodi & Dosen PA) | Relasi terhubung lengkap | ✅ PASS |
+| **CRUD-R03** | READ | **Naysilla Sifa A. (Backend)** | Kalkulasi Kuota SKS Dinamis (IPS) | IPS 3.25 $	o$ Maks 24 SKS | ✅ PASS |
+| **CRUD-R04** | READ | **Naysilla Sifa A. (Backend)** | Safe Query Data Non-Existent | Return array kosong tanpa crash | ✅ PASS |
+| **CRUD-U01** | UPDATE | **Nayla Putri R. (Frontend)** | Update Profil Mahasiswa & IPS | Nama & IPS terbarui di DB | ✅ PASS |
+| **CRUD-U02** | UPDATE | **Nayla Putri R. (Frontend)** | Dampak Update IPS ke Kuota SKS | IPS 2.35 otomatis 18 SKS | ✅ PASS |
+| **CRUD-U03** | UPDATE | **Nayla Putri R. (Frontend)** | Update Alur Status Perwalian KRS | Status berubah ke 'disetujui' | ✅ PASS |
+| **CRUD-U04** | UPDATE | **Nayla Putri R. (Frontend)** | Cegah Status KRS Ilegal/Diluar Domain | Ditolak DB Error 23514 (CHECK) | ✅ PASS |
+| **CRUD-D01** | DELETE | **Meila Fitri (QA / Tester)** | Hapus Single Item dari Kartu KRS | 1 baris krs_detail terhapus | ✅ PASS |
+| **CRUD-D02** | DELETE | **Meila Fitri (QA / Tester)** | Integritas Relasi ON DELETE CASCADE | Hapus KRS hapus rincian anak | ✅ PASS |
+| **CRUD-D03** | DELETE | **Meila Fitri (QA / Tester)** | Integritas Relasi ON DELETE RESTRICT | Tolak hapus Prodi SIF (Error 23001) | ✅ PASS |
+| **CRUD-D04** | DELETE | **Meila Fitri (QA / Tester)** | Sanitasi Database (Cleanup Data Uji) | Database bersih ke state semula | ✅ PASS |
+
