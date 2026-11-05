@@ -10,7 +10,9 @@
     "preview": "vite preview",
     "dev": "concurrently \"node server/index.js\" \"vite\"",
     "start": "node server/index.js",
-    "test:crud": "node tests/crud/runner.js"
+    "test:crud": "node tests/crud/runner.js",
+    "test:stress": "node tests/stress/stress_test_1000.js",
+    "test": "npm run test:crud && npm run test:stress"
   },
   "dependencies": {
     "cors": "^2.8.5",
