@@ -9,7 +9,9 @@ import {
   Sun,
   ChevronDown,
   Check,
-  UserCheck
+  UserCheck,
+  Search,
+  X
 } from 'lucide-react';
 
 export default function Navbar({ 
@@ -27,6 +29,7 @@ export default function Navbar({
   setIsDarkMode 
 }) {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [studentSearch, setStudentSearch] = useState('');
   const dropdownRef = useRef(null);
 
   // Close dropdown when clicking anywhere outside
@@ -39,6 +42,27 @@ export default function Navbar({
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  // Reset filter when dropdown closes
+  useEffect(() => {
+    if (!isDropdownOpen) {
+      setStudentSearch('');
+    }
+  }, [isDropdownOpen]);
+
+  const filteredStudents = (students || []).filter(m => {
+    if (!studentSearch.trim()) return true;
+    const term = studentSearch.toLowerCase().trim();
+    return (
+      (m.nama && m.nama.toLowerCase().includes(term)) ||
+      (m.nim && m.nim.toLowerCase().includes(term)) ||
+      (m.kode_prodi && m.kode_prodi.toLowerCase().includes(term))
+    );
+  });
+
+  const displayedStudents = studentSearch.trim()
+    ? filteredStudents.slice(0, 50)
+    : filteredStudents.slice(0, 30);
   return (
     <header className="sticky top-0 z-40 w-full glass-panel border-b border-slate-200/80 dark:border-slate-800/80 transition-colors">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -136,37 +160,85 @@ export default function Navbar({
 
               {/* Dropdown Menu - rendered on click, stays open */}
               {isDropdownOpen && (
-                <div className="absolute right-0 mt-2 w-72 bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 py-2 animate-in fade-in zoom-in-95 duration-100 z-50 max-h-[80vh] overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800">
+                <div className="absolute right-0 mt-2 w-80 bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 py-2 animate-in fade-in zoom-in-95 duration-100 z-50 max-h-[80vh] overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800">
                   
                   {/* Mahasiswa Section */}
                   <div className="py-1">
                     <div className="px-3 py-1.5 text-[10px] font-bold tracking-wider text-emerald-700 dark:text-emerald-400 uppercase flex items-center justify-between">
                       <span>Pilih Mahasiswa ({students.length}):</span>
+                      {studentSearch && (
+                        <span className="text-[10px] font-medium text-slate-400 normal-case">
+                          {filteredStudents.length} cocok
+                        </span>
+                      )}
                     </div>
-                    <div className="max-h-48 overflow-y-auto space-y-0.5">
-                      {students.map(m => {
-                        const isSelected = activeStudent?.nim === m.nim && currentRole === 'mahasiswa';
-                        return (
+
+                    {/* Search Input Box */}
+                    <div className="px-2.5 pb-2 pt-0.5">
+                      <div className="relative">
+                        <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                        <input
+                          type="search"
+                          id="search-mahasiswa-dropdown"
+                          name="search-mahasiswa"
+                          value={studentSearch}
+                          onChange={(e) => setStudentSearch(e.target.value)}
+                          placeholder="Cari nama atau NIM..."
+                          className="w-full pl-8 pr-7 py-1.5 text-xs bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition"
+                          autoComplete="off"
+                          autoCorrect="off"
+                          autoCapitalize="off"
+                          spellCheck="false"
+                          autoFocus
+                        />
+                        {studentSearch && (
                           <button
-                            key={m.nim}
-                            onClick={() => {
-                              setActiveStudent(m);
-                              setCurrentRole('mahasiswa');
-                              setActiveTab('mahasiswa');
-                              setIsDropdownOpen(false);
-                            }}
-                            className={`w-full text-left px-3 py-2 text-xs flex items-center justify-between hover:bg-emerald-50 dark:hover:bg-slate-800 transition ${
-                              isSelected ? 'bg-emerald-50/80 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 font-bold border-l-4 border-emerald-600' : 'text-slate-700 dark:text-slate-300'
-                            }`}
+                            type="button"
+                            onClick={() => setStudentSearch('')}
+                            className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-0.5"
+                            aria-label="Bersihkan pencarian"
                           >
-                            <div className="truncate pr-2">
-                              <span className="block truncate">{m.nama}</span>
-                              <span className="font-mono text-[10px] text-slate-400">NIM: {m.nim}</span>
-                            </div>
-                            {isSelected && <Check className="w-4 h-4 text-emerald-600 flex-shrink-0" />}
+                            <X className="w-3.5 h-3.5" />
                           </button>
-                        );
-                      })}
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="max-h-48 overflow-y-auto space-y-0.5">
+                      {filteredStudents.length === 0 ? (
+                        <div className="px-3 py-4 text-center text-xs text-slate-400">
+                          Tidak ada mahasiswa cocok dengan "{studentSearch}"
+                        </div>
+                      ) : (
+                        displayedStudents.map(m => {
+                          const isSelected = activeStudent?.nim === m.nim && currentRole === 'mahasiswa';
+                          return (
+                            <button
+                              key={m.nim}
+                              onClick={() => {
+                                setActiveStudent(m);
+                                setCurrentRole('mahasiswa');
+                                setActiveTab('mahasiswa');
+                                setIsDropdownOpen(false);
+                              }}
+                              className={`w-full text-left px-3 py-2 text-xs flex items-center justify-between hover:bg-emerald-50 dark:hover:bg-slate-800 transition ${
+                                isSelected ? 'bg-emerald-50/80 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 font-bold border-l-4 border-emerald-600' : 'text-slate-700 dark:text-slate-300'
+                              }`}
+                            >
+                              <div className="truncate pr-2">
+                                <span className="block truncate">{m.nama}</span>
+                                <span className="font-mono text-[10px] text-slate-400">NIM: {m.nim} • {m.kode_prodi || 'SIF'}</span>
+                              </div>
+                              {isSelected && <Check className="w-4 h-4 text-emerald-600 flex-shrink-0" />}
+                            </button>
+                          );
+                        })
+                      )}
+                      {filteredStudents.length > displayedStudents.length && (
+                        <div className="px-3 py-1.5 text-center text-[10px] text-slate-400 bg-slate-50 dark:bg-slate-800/40 border-t border-slate-100 dark:border-slate-800">
+                          Menampilkan {displayedStudents.length} teratas. Ketik lebih spesifik untuk menyaring.
+                        </div>
+                      )}
                     </div>
                   </div>
 
